@@ -1,4 +1,4 @@
-package undersampling
+package undersampling.io
 
 import smile.data.AttributeDataset
 

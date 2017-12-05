@@ -1,6 +1,8 @@
 package undersampling
 
-import smile.data.{AttributeDataset, NominalAttribute}
+import smile.data.AttributeDataset
+import undersampling.algorithm.CNN
+import undersampling.io.{Reader, Writer}
 
 /** An object to test the different algorithms
   *
@@ -8,13 +10,17 @@ import smile.data.{AttributeDataset, NominalAttribute}
   */
 object MainFile {
   def main(args: Array[String]): Unit = {
-    val readerArff: Reader = new Reader(dataSet = "./data/sonar.arff")
-    val readerText: Reader = new Reader(dataSet = "./data/sonar.csv")
-    val dataArff: AttributeDataset = readerArff.readArff(classColumn = 60)
-    val dataText: AttributeDataset = readerText.readDelimitedText(delimiter = ",", header = true, response = Some((new NominalAttribute("class"), 60)))
+    val data = List("contact-lenses.arff", "diabetes.arff", "iris.arff", "vote.arff", "weather.nominal.arff")
+    val classes = List(4, 8, 4, 16, 4)
 
-    val writer = new Writer
-    writer.writeArff(dataArff, "./data/results/sonar_arff")
-    writer.writeDelimitedText(dataText, "./data/results/sona_csv", ",")
+    for (dataset <- data zip classes) {
+      println(dataset._1)
+      val reader: Reader = new Reader(dataSet = "./data/" + dataset._1)
+      val data: AttributeDataset = reader.readArff(classColumn = dataset._2)
+      val cnn = new CNN(data)
+      val result: AttributeDataset = cnn.compute(k = 3, file = "./data/logs/" + dataset._1)
+      val writer = new Writer
+      writer.writeArff(result, "./data/results/" + dataset._1)
+    }
   }
 }
