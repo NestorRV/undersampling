@@ -61,7 +61,8 @@ class CNN(private[undersampling] val data: AttributeDataset) {
         // otherwise, it is added to store
         location(element._2) = 1
         this.logger.addMsg("Element " + element._2 + " add to store for being incorrectly classified. " +
-          "Original label: " + this.y(element._2) + ". Estimated label: " + label, 0)
+          "Original label: " + this.data.response().attribute().toString(this.y(element._2)) +
+          ". Estimated label: " + this.data.response().attribute().toString(label), 0)
       }
     }
 
@@ -84,7 +85,8 @@ class CNN(private[undersampling] val data: AttributeDataset) {
         } else {
           location(element._2) = 1
           this.logger.addMsg("Element " + element._2 + " add to store for being incorrectly classified. " +
-            "Original label: " + this.y(element._2) + ". Estimated label: " + label, 0)
+            "Original label: " + this.data.response().attribute().toString(this.y(element._2)) +
+            ". Estimated label: " + this.data.response().attribute().toString(label), 0)
           changed = true
         }
       }
