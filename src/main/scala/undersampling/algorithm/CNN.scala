@@ -6,20 +6,22 @@ import undersampling.util.Utilities._
 
 /** Implementation of the Condensed Nearest Neighbor decision rule (CNN rule).
   *
-  * @param data           data to work with.
-  * @param minority_class integer representing the class to keep it untouched
+  * @param data           data to work with
   * @param seed           seed to use. If it is not provided, it will use the system time
+  * @param minority_class integer representing the class to keep it untouched
   * @author Néstor Rodríguez Vico
   */
-class CNN(private[undersampling] val data: AttributeDataset, minority_class: Int = 0,
-          private[undersampling] val seed: Long = System.currentTimeMillis()) {
+class CNN(private[undersampling] val data: AttributeDataset, private[undersampling] val seed: Long = System.currentTimeMillis(),
+          minority_class: Int = 0) {
   // Shuffle the data to make it random
   private[undersampling] val random = new util.Random(seed)
   private[undersampling] val index: List[Int] = this.random.shuffle((0 until data.data().size()).toList)
   private[undersampling] val x: Array[Array[Double]] = (this.index map data.toArray(new Array[Array[Double]](data.size))).toArray
   private[undersampling] val y: Array[Int] = (this.index map data.toArray(new Array[Int](data.size))).toArray
-  private[undersampling] val untouchable_class: Int = if (minority_class == 0) 0 else this.y.groupBy((l: Int) => l).map((t: (Int, Array[Int])) =>
-    (t._1, t._2.length)).toArray.minBy { case (_, d) => d }._1
+  private[undersampling] val counter: Array[(Int, Int)] = this.y.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray.sortBy { case (_, d) => d }
+  private[undersampling] val untouchable_class: Int = if (minority_class == 0) this.counter.head._1 else minority_class
+  private[undersampling] val minority_elements: Int = this.counter.head._2
+  private[undersampling] val majority_elements: Int = this.counter.tail.map((_: (Int, Int))._2).sum
 
   /** Compute the CNN algorithm
     *
@@ -27,8 +29,9 @@ class CNN(private[undersampling] val data: AttributeDataset, minority_class: Int
     * @return
     */
   def compute(file: String): AttributeDataset = {
-    val logger: Logger = new Logger(numberLogs = 1)
+    val logger: Logger = new Logger(numberLogs = 2)
     logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.x.length.toString
+    logger.info += "ORIGINAL IMBALANCED RATIO: " + (this.majority_elements.toFloat / this.minority_elements).toString
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(this.x.length)(0).toArray
@@ -83,9 +86,10 @@ class CNN(private[undersampling] val data: AttributeDataset, minority_class: Int
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
     val store: Array[Array[Double]] = storeIndex map this.x
     val storeClasses: Array[Int] = storeIndex map this.y
-
+    val newCounter: Array[(Int, Int)] = storeClasses.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
     logger.info(0) += "\nNEW DATA SIZE: " + storeIndex.length + "\n"
     logger.info(0) += "\nREDUCTION PERCENTAGE: " + (100 - (storeIndex.length.toFloat / this.x.length) * 100) + "\n"
+    logger.addMsg("NEW IMBALANCED RATIO: " + ((newCounter.map((_: (Int, Int))._2).sum.toFloat - this.minority_elements) / this.minority_elements).toString, 1)
     logger.storeFile(file)
 
     toDataSet(this.data, store, storeClasses)
