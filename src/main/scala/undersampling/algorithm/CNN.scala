@@ -13,13 +13,18 @@ import undersampling.util.Utilities._
   */
 class CNN(private[undersampling] val data: AttributeDataset, private[undersampling] val seed: Long = System.currentTimeMillis(),
           minority_class: Int = 0) {
-  // Shuffle the data to make it random
+
   private[undersampling] val random = new util.Random(seed)
+  // Shuffle the data to make it random
   private[undersampling] val index: List[Int] = this.random.shuffle((0 until data.data().size()).toList)
   private[undersampling] val x: Array[Array[Double]] = (this.index map data.toArray(new Array[Array[Double]](data.size))).toArray
   private[undersampling] val y: Array[Int] = (this.index map data.toArray(new Array[Int](data.size))).toArray
+  // Count the number of instances for each class
   private[undersampling] val counter: Array[(Int, Int)] = this.y.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray.sortBy { case (_, d) => d }
+  // In certain algorithms, reduce the minority class is forbidden, so let's detect what class is it if the user don't
+  // set one at pleasure
   private[undersampling] val untouchable_class: Int = if (minority_class == 0) this.counter.head._1 else minority_class
+  // Extra information to obtain the Imbalanced Ratio
   private[undersampling] val minority_elements: Int = this.counter.head._2
   private[undersampling] val majority_elements: Int = this.counter.tail.map((_: (Int, Int))._2).sum
 
@@ -45,7 +50,7 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: Int = nnRule(data = index map this.x, labels = index map this.y, newInstance = element._1, k = 1)
-      // If it is no well classified or is a data of the minority class
+      // If it is no well classified or is a element of the minority class
       if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
         // it is added to store
         location(element._2) = 1
@@ -68,7 +73,7 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
         val label: Int = nnRule(data = index map this.x, labels = index map this.y, newInstance = this.x(element._2), k = 1)
-        // If it is no well classified or is a data of the minority class
+        // If it is no well classified or is a element of the minority class
         if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
           // it is added to store
           location(element._2) = 1
@@ -86,12 +91,16 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
     val store: Array[Array[Double]] = storeIndex map this.x
     val storeClasses: Array[Int] = storeIndex map this.y
+    // Recount of classes
     val newCounter: Array[(Int, Int)] = storeClasses.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
     logger.info(0) += "\nNEW DATA SIZE: " + storeIndex.length + "\n"
     logger.info(0) += "\nREDUCTION PERCENTAGE: " + (100 - (storeIndex.length.toFloat / this.x.length) * 100) + "\n"
+    // Recompute the Imbalanced Ratio
     logger.addMsg("NEW IMBALANCED RATIO: " + ((newCounter.map((_: (Int, Int))._2).sum.toFloat - this.minority_elements) / this.minority_elements).toString, 1)
+    // Save the logs
     logger.storeFile(file)
 
+    // Return an AttributeDataset
     toDataSet(this.data, store, storeClasses)
   }
 }
