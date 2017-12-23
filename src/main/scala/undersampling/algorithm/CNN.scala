@@ -6,18 +6,20 @@ import undersampling.util.Utilities._
 
 /** Implementation of the Condensed Nearest Neighbor decision rule (CNN rule).
   *
-  * @param data data to work with.
-  * @param seed seed to use. If it is not provided, it will use the system time
+  * @param data           data to work with.
+  * @param minority_class integer representing the class to keep it untouched
+  * @param seed           seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-class CNN(private[undersampling] val data: AttributeDataset, private[undersampling] val seed: Long = System.currentTimeMillis()) {
+class CNN(private[undersampling] val data: AttributeDataset, minority_class: Int = 0,
+          private[undersampling] val seed: Long = System.currentTimeMillis()) {
   // Shuffle the data to make it random
   private[undersampling] val random = new util.Random(seed)
   private[undersampling] val index: List[Int] = this.random.shuffle((0 until data.data().size()).toList)
   private[undersampling] val x: Array[Array[Double]] = (this.index map data.toArray(new Array[Array[Double]](data.size))).toArray
   private[undersampling] val y: Array[Int] = (this.index map data.toArray(new Array[Int](data.size))).toArray
-  private[undersampling] val logger: Logger = new Logger(numberLogs = 1)
-  this.logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.x.length.toString
+  private[undersampling] val untouchable_class: Int = if (minority_class == 0) 0 else this.y.groupBy((l: Int) => l).map((t: (Int, Array[Int])) =>
+    (t._1, t._2.length)).toArray.minBy { case (_, d) => d }._1
 
   /** Compute the CNN algorithm
     *
@@ -25,6 +27,9 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     * @return
     */
   def compute(file: String): AttributeDataset = {
+    val logger: Logger = new Logger(numberLogs = 1)
+    logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.x.length.toString
+
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(this.x.length)(0).toArray
     var iteration: Int = 0
@@ -37,17 +42,17 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: Int = nnRule(data = index map this.x, labels = index map this.y, newInstance = element._1, k = 1)
-      // If is well classified
-      if (label == this.y(element._2)) {
-        // it is added to grabbag
-        location(element._2) = -1
-      } else {
-        // otherwise, it is added to store
+      // If it is no well classified or is a data of the minority class
+      if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
+        // it is added to store
         location(element._2) = 1
+      } else {
+        // otherwise, it is added to grabbag
+        location(element._2) = -1
       }
     }
 
-    this.logger.addMsg("Iteration " + iteration + ": grabbag size: " + location.count((z: Int) => z == -1) +
+    logger.addMsg("Iteration " + iteration + ": grabbag size: " + location.count((z: Int) => z == -1) +
       ", store size: " + location.count((z: Int) => z == 1) + ".", 0)
 
     // After a first pass, iterate grabbag until is exhausted:
@@ -60,15 +65,17 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
         val label: Int = nnRule(data = index map this.x, labels = index map this.y, newInstance = this.x(element._2), k = 1)
-        if (label == this.y(element._2)) {
-          location(element._2) = -1
-        } else {
+        // If it is no well classified or is a data of the minority class
+        if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
+          // it is added to store
           location(element._2) = 1
-          changed = true
+        } else {
+          // otherwise, it is added to grabbag
+          location(element._2) = -1
         }
       }
 
-      this.logger.addMsg("Iteration " + iteration + ": grabbag size: " + location.count((z: Int) => z == -1) +
+      logger.addMsg("Iteration " + iteration + ": grabbag size: " + location.count((z: Int) => z == -1) +
         ", store size: " + location.count((z: Int) => z == 1) + ".", 0)
     }
 
@@ -77,9 +84,9 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     val store: Array[Array[Double]] = storeIndex map this.x
     val storeClasses: Array[Int] = storeIndex map this.y
 
-    this.logger.info(0) += "\nNEW DATA SIZE: " + storeIndex.length + "\n"
-    this.logger.info(0) += "\nREDUCTION PERCENTAGE: " + (100 - (storeIndex.length.toFloat / this.x.length) * 100) + "\n"
-    this.logger.storeFile(file)
+    logger.info(0) += "\nNEW DATA SIZE: " + storeIndex.length + "\n"
+    logger.info(0) += "\nREDUCTION PERCENTAGE: " + (100 - (storeIndex.length.toFloat / this.x.length) * 100) + "\n"
+    logger.storeFile(file)
 
     toDataSet(this.data, store, storeClasses)
   }
