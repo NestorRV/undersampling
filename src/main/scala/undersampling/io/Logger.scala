@@ -37,7 +37,7 @@ private[undersampling] class Logger(private[undersampling] val numberLogs: Int) 
   def storeFile(file: String): Unit = {
     val data = new PrintWriter(new File(file + ".log"))
 
-    for(pair <- info zip log){
+    for (pair <- info zip log) {
       data.write(pair._1 + "\n")
       pair._2.foreach((line: String) => data.write(line + "\n"))
       data.write("\n\n")
