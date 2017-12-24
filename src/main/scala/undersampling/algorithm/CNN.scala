@@ -27,6 +27,12 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
   // Extra information to obtain the Imbalanced Ratio
   private[undersampling] val minority_elements: Int = this.counter.head._2
   private[undersampling] val majority_elements: Int = this.counter.tail.map((_: (Int, Int))._2).sum
+  // Info to normalize the data
+  private[undersampling] val max_v: Array[Double] = this.x.transpose.map((x: Array[Double]) => x.max)
+  private[undersampling] val min_v: Array[Double] = this.x.transpose.map((x: Array[Double]) => x.min)
+  // Normalize the data as follow: for each column, x, (x-min(x))/(max(x)-min(x))
+  private[undersampling] val normalized: Array[Array[Double]] = (this.x.transpose zip (min_v zip max_v)).map((row: (Array[Double], (Double, Double))) =>
+    row._1.map((e: Double) => e - row._2._1 / (row._2._2 / row._2._1)))
 
   /** Compute the CNN algorithm
     *
@@ -35,21 +41,21 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     */
   def compute(file: String): AttributeDataset = {
     val logger: Logger = new Logger(numberLogs = 2)
-    logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.x.length.toString
+    logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.normalized.length.toString
     logger.info += "ORIGINAL IMBALANCED RATIO: " + (this.majority_elements.toFloat / this.minority_elements).toString
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
-    val location: Array[Int] = List.fill(this.x.length)(0).toArray
+    val location: Array[Int] = List.fill(this.normalized.length)(0).toArray
     var iteration: Int = 0
     // The first element is added to store
     location(0) = 1
     var changed = true
 
     // Iterate the data, x (except the first instance)
-    for (element <- this.x.zipWithIndex.slice(1, this.x.length)) {
+    for (element <- this.normalized.zipWithIndex.slice(1, this.normalized.length)) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-      val label: Int = nnRule(data = index map this.x, labels = index map this.y, newInstance = element._1, k = 1)
+      val label: Int = nnRule(data = index map this.normalized, labels = index map this.y, newInstance = element._1, k = 1)
       // If it is no well classified or is a element of the minority class
       if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
         // it is added to store
@@ -72,7 +78,7 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       // Now, instead of iterating x, we iterate grabbag
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-        val label: Int = nnRule(data = index map this.x, labels = index map this.y, newInstance = this.x(element._2), k = 1)
+        val label: Int = nnRule(data = index map this.normalized, labels = index map this.y, newInstance = this.normalized(element._2), k = 1)
         // If it is no well classified or is a element of the minority class
         if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
           // it is added to store
