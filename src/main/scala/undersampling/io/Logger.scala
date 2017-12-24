@@ -1,7 +1,7 @@
 package undersampling.io
 
-import scala.collection.mutable.ArrayBuffer
 import java.io.{File, PrintWriter}
+import scala.collection.mutable.ArrayBuffer
 
 /** Logger to collect info about undersampling process
   *
