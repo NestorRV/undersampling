@@ -1,7 +1,7 @@
 package undersampling
 
 import smile.data.AttributeDataset
-import undersampling.algorithm.CNN
+import undersampling.core.algorithm
 import undersampling.io.{Reader, Writer}
 import undersampling.util.Utilities.Distances
 
@@ -18,8 +18,8 @@ object MainFile {
       println(dataset._1)
       val reader: Reader = new Reader(dataSet = "./data/" + dataset._1)
       val data: AttributeDataset = reader.readArff(classColumn = dataset._2)
-      val cnn = new CNN(data)
-      val result: AttributeDataset = cnn.compute(file = "./data/logs/" + dataset._1, distance = Distances.EUCLIDEAN)
+      val algorithm = new algorithm(data)
+      val result: AttributeDataset = algorithm.CNN(file = "./data/logs/" + dataset._1, distance = Distances.EUCLIDEAN)
       val writer = new Writer
       writer.writeArff(result, "./data/results/" + dataset._1)
     }

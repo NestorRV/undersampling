@@ -1,18 +1,18 @@
-package undersampling.algorithm
+package undersampling.core
 
 import smile.data.AttributeDataset
 import undersampling.io.Logger
 import undersampling.util.Utilities._
 
-/** Implementation of the Condensed Nearest Neighbor decision rule (CNN rule).
+/** Implementation of the algorithms
   *
   * @param data           data to work with
   * @param seed           seed to use. If it is not provided, it will use the system time
   * @param minority_class integer representing the class to keep it untouched
   * @author Néstor Rodríguez Vico
   */
-class CNN(private[undersampling] val data: AttributeDataset, private[undersampling] val seed: Long = System.currentTimeMillis(),
-          minority_class: Int = 0) {
+class algorithm(private[undersampling] val data: AttributeDataset, private[undersampling] val seed: Long = System.currentTimeMillis(),
+                minority_class: Int = 0) {
 
   private[undersampling] val random = new util.Random(seed)
   // Shuffle the data to make it random
@@ -34,16 +34,16 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
   private[undersampling] val normalized_data: Array[Array[Double]] = (this.x.transpose zip (min_v zip max_v)).map((row: (Array[Double], (Double, Double))) =>
     row._1.map((e: Double) => e - row._2._1 / (row._2._2 / row._2._1)))
 
-  /** Compute the CNN algorithm
+  /** Compute the Condensed Nearest Neighbor decision rule (CNN rule)
     *
     * @param file     file to store the log
     * @param distance distance to use when calling the NNRule algorithm
     * @return an AttributeDataset with the reduced data
     */
-  def compute(file: String, distance: Distances.Distance): AttributeDataset = {
+  def CNN(file: String, distance: Distances.Distance): AttributeDataset = {
     val logger: Logger = new Logger(numberLogs = 2)
-    logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.normalized_data.length.toString
-    logger.info += "ORIGINAL IMBALANCED RATIO: " + (this.majority_elements.toFloat / this.minority_elements).toString
+    logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: %s".format(this.normalized_data.length.toString)
+    logger.info += "ORIGINAL IMBALANCED RATIO: %s".format((this.majority_elements.toFloat / this.minority_elements).toString)
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(this.normalized_data.length)(0).toArray
@@ -68,8 +68,7 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       }
     }
 
-    logger.addMsg("Iteration " + iteration + ": grabbag size: " + location.count((z: Int) => z == -1) +
-      ", store size: " + location.count((z: Int) => z == 1) + ".", 0)
+    logger.addMsg("Iteration %d: grabbag size: %d, store size: %d.".format(iteration, location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)), 0)
 
     // After a first pass, iterate grabbag until is exhausted:
     // 1. There is no element in grabbag or
@@ -92,8 +91,7 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
         }
       }
 
-      logger.addMsg("Iteration " + iteration + ": grabbag size: " + location.count((z: Int) => z == -1) +
-        ", store size: " + location.count((z: Int) => z == 1) + ".", 0)
+      logger.addMsg("Iteration %d: grabbag size: %d, store size: %d.".format(iteration, location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)), 0)
     }
 
     // The final data is the content of store
@@ -102,10 +100,10 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     val storeClasses: Array[Int] = storeIndex map this.y
     // Recount of classes
     val newCounter: Array[(Int, Int)] = storeClasses.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
-    logger.info(0) += "\nNEW DATA SIZE: " + storeIndex.length + "\n"
-    logger.info(0) += "\nREDUCTION PERCENTAGE: " + (100 - (storeIndex.length.toFloat / this.x.length) * 100) + "\n"
+    logger.info(0) += "\nNEW DATA SIZE: %d\n".format(storeIndex.length)
+    logger.info(0) += "\nREDUCTION PERCENTAGE: %f\n".format(100 - (storeIndex.length.toFloat / this.x.length) * 100)
     // Recompute the Imbalanced Ratio
-    logger.addMsg("NEW IMBALANCED RATIO: " + ((newCounter.map((_: (Int, Int))._2).sum.toFloat - this.minority_elements) / this.minority_elements).toString, 1)
+    logger.addMsg("NEW IMBALANCED RATIO: %s".format(((newCounter.map((_: (Int, Int))._2).sum.toFloat - this.minority_elements) / this.minority_elements).toString), 1)
     // Save the logs
     logger.storeFile(file)
 
