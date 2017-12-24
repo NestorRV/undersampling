@@ -8,6 +8,15 @@ import scala.math.{pow, sqrt}
   * @author Néstor Rodríguez Vico
   */
 object Utilities {
+
+  /** Enumeration to store the possible distances
+    * EUCLIDEAN: Euclidean Distance
+    */
+  object Distances extends Enumeration {
+    type Distance = Value
+    val EUCLIDEAN: Distances.Value = Value
+  }
+
   /** Compute the mode of an array
     *
     * @param data array to compute the mode
@@ -19,12 +28,23 @@ object Utilities {
 
   /** Compute the Euclidean Distance between two points
     *
-    * @param xs first data
-    * @param ys second data
+    * @param xs first element
+    * @param ys second element
     * @return Euclidean Distance between xs and ys
     */
   def euclideanDistance(xs: Array[Double], ys: Array[Double]): Double = {
     sqrt((xs zip ys).map { case (x, y) => pow(y - x, 2) }.sum)
+  }
+
+  /** Compute the selected distance
+    *
+    * @param xs       first element
+    * @param ys       first element
+    * @param distance distance to use. Available in enumeration Distances
+    * @return distance between xs and ys
+    */
+  def computeDistance(xs: Array[Double], ys: Array[Double], distance: Distances.Distance): Double = {
+    euclideanDistance(xs, ys)
   }
 
   /** Build a AttributeDataset with the data provided in x and the classes provided in y
@@ -43,13 +63,14 @@ object Utilities {
   /** Decide the label of newInstance using the NNRule considering k neighbors of data set
     *
     * @param data        data where to search for
-    * @param labels      labels asociated to each point in data
-    * @param newInstance the point you want to clasify
+    * @param labels      labels associated to each point in data
+    * @param newInstance the point you want to classify
     * @param k           number of neighbors to consider
+    * @param distance    distance to use. Available in enumeration Distances. Euclidean Distance by default
     * @return the label associated to newPoint
     */
-  def nnRule(data: Array[Array[Double]], labels: Array[Int], newInstance: Array[Double], k: Int): Int = {
-    val distances: Array[(Double, Int)] = data.map((x: Array[Double]) => euclideanDistance(x, newInstance)).zipWithIndex.sortBy { case (d, _) => d }
+  def nnRule(data: Array[Array[Double]], labels: Array[Int], newInstance: Array[Double], k: Int, distance: Distances.Distance = Distances.EUCLIDEAN): Int = {
+    val distances: Array[(Double, Int)] = data.map((x: Array[Double]) => computeDistance(x, newInstance, distance)).zipWithIndex.sortBy { case (d, _) => d }
     val bestDistances: Array[(Double, Int)] = distances.slice(0, if (k > data.length) data.length else k)
     val index: Array[Int] = bestDistances.map((d: (Double, Int)) => d._2)
     mode(index map labels)

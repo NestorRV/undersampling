@@ -39,7 +39,7 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     * @param file file to store the log
     * @return
     */
-  def compute(file: String): AttributeDataset = {
+  def compute(file: String, distance: Distances.Distance): AttributeDataset = {
     val logger: Logger = new Logger(numberLogs = 2)
     logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: " + this.normalized_data.length.toString
     logger.info += "ORIGINAL IMBALANCED RATIO: " + (this.majority_elements.toFloat / this.minority_elements).toString
@@ -55,7 +55,8 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
     for (element <- this.normalized_data.zipWithIndex.slice(1, this.normalized_data.length)) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-      val label: Int = nnRule(data = index map this.normalized_data, labels = index map this.y, newInstance = element._1, k = 1)
+      val label: Int = nnRule(data = index map this.normalized_data, labels = index map this.y,
+                              newInstance = element._1, k = 1, distance = distance)
       // If it is no well classified or is a element of the minority class
       if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
         // it is added to store
@@ -78,7 +79,8 @@ class CNN(private[undersampling] val data: AttributeDataset, private[undersampli
       // Now, instead of iterating x, we iterate grabbag
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-        val label: Int = nnRule(data = index map this.normalized_data, labels = index map this.y, newInstance = this.normalized_data(element._2), k = 1)
+        val label: Int = nnRule(data = index map this.normalized_data, labels = index map this.y,
+                                newInstance = this.normalized_data(element._2), k = 1, distance = distance)
         // If it is no well classified or is a element of the minority class
         if (label != this.y(element._2) || this.y(element._2) == this.untouchable_class) {
           // it is added to store
