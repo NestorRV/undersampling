@@ -89,7 +89,7 @@ class Algorithm(private[undersampling] val data: AttributeDataset, private[under
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: Int = nnRule(data = index map this.normalizedData, labels = index map this.y,
-        newInstance = element._1, k = 1, distance = distance)
+        newInstance = element._1, newInstanceLabel = this.y(element._2), k = 1, distance = distance)
       // If it is no well classified or is a element of the minority class
       if (label != this.y(element._2) || this.y(element._2) == this.untouchableClass) {
         // it is added to store
@@ -112,7 +112,7 @@ class Algorithm(private[undersampling] val data: AttributeDataset, private[under
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
         val label: Int = nnRule(data = index map this.normalizedData, labels = index map this.y,
-          newInstance = this.normalizedData(element._2), k = 1, distance = distance)
+          newInstance = this.normalizedData(element._2), newInstanceLabel = this.y(element._2), k = 1, distance = distance)
         // If it is no well classified or is a element of the minority class
         if (label != this.y(element._2) || this.y(element._2) == this.untouchableClass) {
           // it is added to store
