@@ -3,7 +3,7 @@ package undersampling.core
 import undersampling.io.Logger
 import undersampling.util.Utilities._
 
-/** Implementation of the algorithms
+/** Condensed Nearest Neighbor decision rule
   *
   * @param x             data to work with
   * @param y             labels of the data associated with x
