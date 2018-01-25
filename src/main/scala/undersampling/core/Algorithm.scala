@@ -7,7 +7,7 @@ class Algorithm(private[undersampling] val x: Array[Array[Double]], private[unde
 
   private[undersampling] val random: Random = new util.Random(seed)
   // Shuffle the data to make it random
-  private[undersampling] val index: List[Int] = this.random.shuffle(y.indices.toList)
+  private[undersampling] val index: List[Int] = this.random.shuffle(this.y.indices.toList)
   private[undersampling] val randomizedX: Array[Array[Double]] = (this.index map this.x).toArray
   private[undersampling] val randomizedY: Array[Int] = (this.index map this.y).toArray
   // Count the number of instances for each class
@@ -22,6 +22,6 @@ class Algorithm(private[undersampling] val x: Array[Array[Double]], private[unde
   private[undersampling] val maxV: Array[Double] = this.randomizedX.transpose.map((x: Array[Double]) => x.max)
   private[undersampling] val minV: Array[Double] = this.randomizedX.transpose.map((x: Array[Double]) => x.min)
   // Normalize the data as follow: for each column, x, (x-min(x))/(max(x)-min(x))
-  private[undersampling] val normalizedData: Array[Array[Double]] = (this.randomizedX.transpose zip (minV zip maxV)).map((row: (Array[Double], (Double, Double))) =>
+  private[undersampling] val normalizedData: Array[Array[Double]] = (this.randomizedX.transpose zip (this.minV zip this.maxV)).map((row: (Array[Double], (Double, Double))) =>
     row._1.map((e: Double) => e - row._2._1 / (row._2._2 / row._2._1))).transpose
 }
