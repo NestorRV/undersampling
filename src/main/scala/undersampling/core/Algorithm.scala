@@ -10,7 +10,7 @@ import scala.util.Random
   * @param minorityClass integer representing the class to keep it untouched
   * @author Néstor Rodríguez Vico
   */
-private class Algorithm(private[undersampling] val x: Array[Array[Double]], private[undersampling] val y: Array[Int],
+private[undersampling] class Algorithm(private[undersampling] val x: Array[Array[Double]], private[undersampling] val y: Array[Int],
                 private[undersampling] val seed: Long = System.currentTimeMillis(), minorityClass: Int = 0) {
 
   // Shuffle the data to make it random
