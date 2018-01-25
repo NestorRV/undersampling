@@ -1,7 +1,5 @@
 package undersampling.util
 
-import smile.data.AttributeDataset
-
 import scala.math.{pow, sqrt}
 
 /** Set of utilities functions
@@ -47,19 +45,6 @@ object Utilities {
     */
   def euclideanDistance(xs: Array[Double], ys: Array[Double]): Double = {
     sqrt((xs zip ys).map { case (x, y) => pow(y - x, 2) }.sum)
-  }
-
-  /** Build an AttributeDataset with the data provided in x and the classes provided in y
-    *
-    * @param originalData original AttributeDataset to read the meta info
-    * @param x            data to store in the AttributeDataset
-    * @param y            labels associated to x
-    * @return the final AttributeDataset
-    */
-  def toDataSet(originalData: AttributeDataset, x: Array[Array[Double]], y: Array[Int]): AttributeDataset = {
-    val dataSet: AttributeDataset = new AttributeDataset(originalData.getName, originalData.attributes(), originalData.response().attribute())
-    (x zip y).foreach((pair: (Array[Double], Int)) => dataSet.add(pair._1, pair._2))
-    dataSet
   }
 
   /** Decide the label of newInstance using the NNRule considering k neighbors of data set

@@ -1,9 +1,9 @@
 package undersampling
 
 import smile.data.AttributeDataset
-import undersampling.core.Algorithm
+import undersampling.core._
 import undersampling.io.{Reader, Writer}
-import undersampling.util.Utilities.Distances
+import undersampling.util.Utilities._
 
 /** An object to test the different algorithms
   *
@@ -18,17 +18,22 @@ object MainFile {
       println(dataset._1)
       val reader: Reader = new Reader(dataSet = "./data/" + dataset._1)
       val data: AttributeDataset = reader.readArff(classColumn = dataset._2)
-      val algorithm = new Algorithm(data)
+      val x: Array[Array[Double]] = data.toArray(new Array[Array[Double]](data.size))
+      val y: Array[Int] = data.toArray(new Array[Int](data.size))
+      val writer: Writer = new Writer
+
+
+      val ru = new RandomUndersampling(x, y)
+      val result: (Array[Array[Double]], Array[Int], Array[Int]) = ru.sample(file = "./data/logs/" + dataset._1, numberOfElements = 10)
+      val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
+      writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_RU")
 
       /*
-      val result: AttributeDataset = algorithm.RandomUndersampling(file = "./data/logs/" + dataset._1, numberOfElements = 10)
-      val writer = new Writer
-      writer.writeArff(result, "./data/results/" + dataset._1 + "_RU")
+      val cnn = new CondensedNearestNeighbor(x, y)
+      val result: (Array[Array[Double]], Array[Int], Array[Int]) = cnn.sample(file = "./data/logs/" + dataset._1, distance = Distances.EUCLIDEAN)
+      val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
+      writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_CNN")
       */
-
-      val result: AttributeDataset = algorithm.CNN(file = "./data/logs/" + dataset._1, distance = Distances.SAMELABELS)
-      val writer = new Writer
-      writer.writeArff(result, "./data/results/" + dataset._1 + "_CNN")
     }
   }
 }
