@@ -1,5 +1,7 @@
 package undersampling.core
 
+import undersampling.io.Logger
+
 import scala.util.Random
 
 /** Base class to all the algorithms
@@ -13,6 +15,8 @@ import scala.util.Random
 private[undersampling] class Algorithm(private[undersampling] val x: Array[Array[Double]], private[undersampling] val y: Array[Int],
                                        private[undersampling] val seed: Long = System.currentTimeMillis(), minorityClass: Int = 0) {
 
+  // Logger object to log the execution of the algorithms
+  private[undersampling] val logger = new Logger
   // Shuffle the data to make it random
   private[undersampling] var random: Random = new util.Random(seed)
   private[undersampling] var index: List[Int] = this.random.shuffle(this.y.indices.toList)

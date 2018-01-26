@@ -1,6 +1,5 @@
 package undersampling.core
 
-import undersampling.io.Logger
 import undersampling.util.Utilities._
 
 /** Condensed Nearest Neighbor decision rule
@@ -18,14 +17,16 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
 
   /** Compute the Condensed Nearest Neighbor decision rule (CNN rule)
     *
-    * @param file     file to store the log
+    * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
     * @return reduced data, reduced labels, index of elements kept
     */
-  def sample(file: String, distance: Distances.Distance): (Array[Array[Double]], Array[Int], Array[Int]) = {
-    val logger: Logger = new Logger(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
-    logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
-    logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
+  def sample(file: Option[String] = None, distance: Distances.Distance): (Array[Array[Double]], Array[Int], Array[Int]) = {
+    if (file.isDefined) {
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
+    }
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(this.normalizedData.length)(0).toArray
@@ -50,8 +51,10 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
       }
     }
 
-    logger.addMsg("DATA SIZE REDUCTION INFORMATION", "Iteration %d: grabbag size: %d, store size: %d.".format(iteration,
-      location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
+    if (file.isDefined) {
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "Iteration %d: grabbag size: %d, store size: %d.".format(iteration,
+        location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
+    }
 
     // After a first pass, iterate grabbag until is exhausted:
     // 1. There is no element in grabbag or
@@ -75,22 +78,27 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
         }
       }
 
-      logger.addMsg("DATA SIZE REDUCTION INFORMATION", "Iteration %d: grabbag size: %d, store size: %d.".format(iteration,
-        location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
+      if (file.isDefined) {
+        this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "Iteration %d: grabbag size: %d, store size: %d.".format(iteration,
+          location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
+      }
     }
 
     // The final data is the content of store
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
     val store: Array[Array[Double]] = storeIndex map this.randomizedX
     val storeClasses: Array[Int] = storeIndex map this.randomizedY
-    // Recount of classes
-    val newCounter: Array[(Int, Int)] = storeClasses.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
-    logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
-    logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100).toString)
-    // Recompute the Imbalanced Ratio
-    logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
-    // Save the log
-    logger.storeFile(file + "_CNN")
+
+    if (file.isDefined) {
+      // Recount of classes
+      val newCounter: Array[(Int, Int)] = storeClasses.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
+      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      // Recompute the Imbalanced Ratio
+      this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the log
+      this.logger.storeFile(file.get + "_CNN")
+    }
 
     (store, storeClasses, storeIndex)
   }

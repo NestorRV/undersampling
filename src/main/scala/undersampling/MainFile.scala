@@ -30,7 +30,7 @@ object MainFile {
       */
 
       val cnn = new CondensedNearestNeighbor(x, y)
-      val result: (Array[Array[Double]], Array[Int], Array[Int]) = cnn.sample(file = "./data/logs/" + dataset._1, distance = Distances.EUCLIDEAN)
+      val result: (Array[Array[Double]], Array[Int], Array[Int]) = cnn.sample(file = Option("./data/logs/" + dataset._1), distance = Distances.EUCLIDEAN)
       val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
       writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_CNN")
     }

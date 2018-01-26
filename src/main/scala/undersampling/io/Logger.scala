@@ -7,13 +7,11 @@ import scala.collection.mutable.ArrayBuffer
 
 /** Logger to collect info about undersampling process
   *
-  * @param names names of the categories to log
   * @author Néstor Rodríguez Vico
   */
-private[undersampling] class Logger(private[undersampling] val names: List[String]) {
+private[undersampling] class Logger {
+  private[undersampling] val names: ArrayBuffer[String] = new ArrayBuffer[String](0)
   private[undersampling] val log: mutable.Map[String, ArrayBuffer[String]] = collection.mutable.Map[String, ArrayBuffer[String]]()
-
-  names.foreach((name: String) => this.log(name) = new ArrayBuffer[String](0))
 
   /** Add a new message to the log
     *
@@ -21,7 +19,11 @@ private[undersampling] class Logger(private[undersampling] val names: List[Strin
     * @param msg      message to store
     */
   def addMsg(category: String, msg: String): Unit = {
-    this.log(category) += msg
+    try {
+      this.log(category) += msg
+    } catch {
+      case e: Exception => throw new Exception("Category not found in logger.")
+    }
   }
 
   /** Add info to the info log
@@ -30,6 +32,15 @@ private[undersampling] class Logger(private[undersampling] val names: List[Strin
     */
   def addCategory(category: String): Unit = {
     this.log(category) = new ArrayBuffer[String](0)
+  }
+
+  /** Set the names of the categories to log
+    *
+    * @param names categories to log
+    */
+  def setNames(names: List[String]): Unit = {
+    names.foreach((name: String) => this.names += name)
+    this.names.foreach((name: String) => this.log(name) = new ArrayBuffer[String](0))
   }
 
   /** Store the logs into a file
