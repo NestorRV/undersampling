@@ -25,7 +25,7 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
   def sample(file: String, distance: Distances.Distance): (Array[Array[Double]], Array[Int], Array[Int]) = {
     val logger: Logger = new Logger(numberLogs = 2)
     logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: %s".format(this.normalizedData.length.toString)
-    logger.info += "ORIGINAL IMBALANCED RATIO: %s".format((this.majorityElements.toFloat / this.minorityElements).toString)
+    logger.info += "ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter))
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(this.normalizedData.length)(0).toArray
@@ -86,7 +86,7 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
     logger.info(0) += "\nNEW DATA SIZE: %d\n".format(storeIndex.length)
     logger.info(0) += "\nREDUCTION PERCENTAGE: %f\n".format(100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100)
     // Recompute the Imbalanced Ratio
-    logger.addMsg("NEW IMBALANCED RATIO: %s".format(((newCounter.map((_: (Int, Int))._2).sum.toFloat - this.minorityElements) / this.minorityElements).toString), 1)
+    logger.addMsg("NEW IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter)), 1)
     // Save the logs
     logger.storeFile(file + "_CNN")
 

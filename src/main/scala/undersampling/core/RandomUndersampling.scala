@@ -17,15 +17,11 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
 
   /** This algorithm preserve, at least, numberOfElements elements from the majority class
     *
-    * @param file             file to store the log
+    * @param file             file to store the log. If its set to None, log process would not be done
     * @param numberOfElements number of elements to preserve from the majority class
     * @return reduced data, reduced labels, index of elements kept
     */
-  def sample(file: String, numberOfElements: Int): (Array[Array[Double]], Array[Int], Array[Int]) = {
-    val logger: Logger = new Logger(numberLogs = 2)
-    logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: %s".format(this.normalizedData.length.toString)
-    logger.info += "ORIGINAL IMBALANCED RATIO: %s".format((this.majorityElements.toFloat / this.minorityElements).toString)
-
+  def sample(file: Option[String] = None, numberOfElements: Int): (Array[Array[Double]], Array[Int], Array[Int]) = {
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = this.randomizedY.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // It is not possible to select more elements than the available
@@ -35,14 +31,19 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
     // Get the index of the reduced data
     val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
 
-    // Recount of classes
-    val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
-    logger.info(0) += "\nNEW DATA SIZE: %d\n".format(finalIndex.length)
-    logger.info(0) += "\nREDUCTION PERCENTAGE: %f\n".format(100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100)
-    // Recompute the Imbalanced Ratio
-    logger.addMsg("NEW IMBALANCED RATIO: %s".format(((newCounter.map((_: (Int, Int))._2).sum.toFloat - this.minorityElements) / this.minorityElements).toString), 1)
-    // Save the logs
-    logger.storeFile(file + "_RU")
+    if (file.isDefined) {
+      val logger: Logger = new Logger(numberLogs = 2)
+      logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: %s".format(this.normalizedData.length.toString)
+      logger.info += "ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter))
+      // Recount of classes
+      val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      logger.info(0) += "\nNEW DATA SIZE: %d\n".format(finalIndex.length)
+      logger.info(0) += "\nREDUCTION PERCENTAGE: %f\n".format(100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100)
+      // Recompute the Imbalanced Ratio
+      logger.addMsg("NEW IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter)), 1)
+      // Save the logs
+      logger.storeFile(file + "_RU")
+    }
 
     (finalIndex map this.randomizedX, finalIndex map this.randomizedY, finalIndex)
   }

@@ -45,4 +45,14 @@ private[undersampling] class Algorithm(private[undersampling] val x: Array[Array
     this.normalizedData = (this.randomizedX.transpose zip (this.minV zip this.maxV)).map((row: (Array[Double], (Double, Double))) =>
       row._1.map((e: Double) => e - row._2._1 / (row._2._2 / row._2._1))).transpose
   }
+
+  /** Compute the imbalanced ratio (number of instances of all the classes except the minority one divided by number of
+    * instances of the minority class)
+    *
+    * @param counter Array containing a pair representing: (class, number of elements)
+    * @return the imbalanced ratio
+    */
+  def imbalancedRatio(counter: Array[(Int, Int)]): Float = {
+    (counter.map((_: (Int, Int))._2).sum.toFloat - this.minorityElements) / this.minorityElements
+  }
 }
