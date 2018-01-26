@@ -32,16 +32,16 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
     val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
 
     if (file.isDefined) {
-      val logger: Logger = new Logger(numberLogs = 2)
-      logger.info += "DATA SIZE REDUCTION INFORMATION. \nORIGINAL DATA SIZE: %s".format(this.normalizedData.length.toString)
-      logger.info += "ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter))
+      val logger: Logger = new Logger(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
       // Recount of classes
       val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
-      logger.info(0) += "\nNEW DATA SIZE: %d\n".format(finalIndex.length)
-      logger.info(0) += "\nREDUCTION PERCENTAGE: %f\n".format(100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100)
+      logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
+      logger.addMsg("REDUCTION PERCENTAGE:", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
-      logger.addMsg("NEW IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter)), 1)
-      // Save the logs
+      logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the logk
       logger.storeFile(file + "_RU")
     }
 

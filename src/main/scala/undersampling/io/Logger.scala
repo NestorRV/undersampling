@@ -1,33 +1,35 @@
 package undersampling.io
 
 import java.io.{File, PrintWriter}
+
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /** Logger to collect info about undersampling process
   *
-  * @param numberLogs number of logs you want to use
+  * @param names names of the categories to log
   * @author Néstor Rodríguez Vico
   */
-private[undersampling] class Logger(private[undersampling] val numberLogs: Int) {
-  private[undersampling] val info: ArrayBuffer[String] = new ArrayBuffer[String](0)
-  private[undersampling] val log: ArrayBuffer[ArrayBuffer[String]] = new ArrayBuffer[ArrayBuffer[String]]
-  for (_ <- 0 until numberLogs)
-    this.log += new ArrayBuffer[String](0)
+private[undersampling] class Logger(private[undersampling] val names: List[String]) {
+  private[undersampling] val log: mutable.Map[String, ArrayBuffer[String]] = collection.mutable.Map[String, ArrayBuffer[String]]()
+
+  names.foreach((name: String) => this.log(name) = new ArrayBuffer[String](0))
 
   /** Add a new message to the log
     *
-    * @param line message to store
+    * @param category category where to add the line
+    * @param msg      message to store
     */
-  def addMsg(line: String, logNumber: Int): Unit = {
-    this.log(logNumber) += line
+  def addMsg(category: String, msg: String): Unit = {
+    this.log(category) += msg
   }
 
   /** Add info to the info log
     *
-    * @param info info to add to the log
+    * @param category category to add to the log
     */
-  def addInfo(info: String): Unit = {
-    this.info += info
+  def addCategory(category: String): Unit = {
+    this.log(category) = new ArrayBuffer[String](0)
   }
 
   /** Store the logs into a file
@@ -37,9 +39,9 @@ private[undersampling] class Logger(private[undersampling] val numberLogs: Int) 
   def storeFile(file: String): Unit = {
     val data = new PrintWriter(new File(file + ".log"))
 
-    for (pair <- info zip log) {
-      data.write(pair._1 + "\n")
-      pair._2.foreach((line: String) => data.write(line + "\n"))
+    for ((k, v) <- this.log) {
+      data.write(k + "\n")
+      v.foreach((line: String) => data.write(line + "\n"))
       data.write("\n\n")
     }
 
