@@ -24,7 +24,7 @@ object MainFile {
 
       /*
       val ru = new RandomUndersampling(x, y)
-      val result: (Array[Array[Double]], Array[Int], Array[Int]) = ru.sample(file = "./data/logs/" + dataset._1, numberOfElements = 10)
+      val result: (Array[Array[Double]], Array[Int], Array[Int]) = ru.sample(file = Option("./data/logs/" + dataset._1), numberOfElements = 10)
       val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
       writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_RU")
       */

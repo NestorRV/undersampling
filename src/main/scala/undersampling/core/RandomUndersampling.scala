@@ -38,11 +38,11 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
       // Recount of classes
       val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
       logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
-      logger.addMsg("REDUCTION PERCENTAGE:", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
       // Save the logk
-      logger.storeFile(file + "_RU")
+      logger.storeFile(file.get + "_RU")
     }
 
     (finalIndex map this.randomizedX, finalIndex map this.randomizedY, finalIndex)
