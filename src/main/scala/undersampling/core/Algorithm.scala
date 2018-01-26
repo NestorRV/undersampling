@@ -11,7 +11,7 @@ import scala.util.Random
   * @author Néstor Rodríguez Vico
   */
 private[undersampling] class Algorithm(private[undersampling] val x: Array[Array[Double]], private[undersampling] val y: Array[Int],
-                private[undersampling] val seed: Long = System.currentTimeMillis(), minorityClass: Int = 0) {
+                                       private[undersampling] val seed: Long = System.currentTimeMillis(), minorityClass: Int = 0) {
 
   // Shuffle the data to make it random
   private[undersampling] var random: Random = new util.Random(seed)
@@ -22,7 +22,7 @@ private[undersampling] class Algorithm(private[undersampling] val x: Array[Array
   private[undersampling] val counter: Array[(Int, Int)] = this.randomizedY.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray.sortBy { case (_, d) => d }
   // In certain algorithms, reduce the minority class is forbidden, so let's detect what class is it if the user don't
   // set one at pleasure
-  private[undersampling] val untouchableClass: Int = if (minorityClass == 0) this.counter.head._1 else minorityClass
+  private[undersampling] val untouchableClass: Int = if (minorityClass == 0) this.counter.head._1 else if (minorityClass > this.randomizedY.length) throw new Exception("minorityClass is too big") else minorityClass
   // Extra information to obtain the Imbalanced Ratio
   private[undersampling] val minorityElements: Int = this.counter.head._2
   private[undersampling] val majorityElements: Int = this.counter.tail.map((_: (Int, Int))._2).sum
