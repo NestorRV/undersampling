@@ -27,10 +27,15 @@ object MainFile {
       val result: (Array[Array[Double]], Array[Int], Array[Int]) = ru.sample(file = Option("./data/logs/" + dataset._1), numberOfElements = 10)
       val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
       writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_RU")
-      */
 
       val cnn = new CondensedNearestNeighbor(x, y)
       val result: (Array[Array[Double]], Array[Int], Array[Int]) = cnn.sample(file = Option("./data/logs/" + dataset._1), distance = Distances.EUCLIDEAN)
+      val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
+      writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_CNN")
+      */
+
+      val enn = new EditedNearestNeighbor(x, y)
+      val result: (Array[Array[Double]], Array[Int], Array[Int]) = enn.sample(file = Option("./data/logs/" + dataset._1), distance = Distances.EUCLIDEAN, k = 3)
       val attributeDataset: AttributeDataset = writer.toDataSet(data, result._1, result._2)
       writer.writeArff(attributeDataset, "./data/results/" + dataset._1 + "_CNN")
     }
