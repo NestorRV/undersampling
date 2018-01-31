@@ -9,7 +9,7 @@ import scala.util.Random
   * @param x             data to work with
   * @param y             labels of the data associated with x
   * @param seed          seed to use. If it is not provided, it will use the system time
-  * @param minorityClass integer representing the class to keep it untouched
+  * @param minorityClass integer representing the class to keep it untouched. If it is set to 0, it will be computed
   * @author Néstor Rodríguez Vico
   */
 private[undersampling] class Algorithm(private[undersampling] val x: Array[Array[Double]], private[undersampling] val y: Array[Int],
@@ -24,8 +24,7 @@ private[undersampling] class Algorithm(private[undersampling] val x: Array[Array
   private[undersampling] var randomizedY: Array[Int] = (this.index map this.y).toArray
   // Count the number of instances for each class
   private[undersampling] val counter: Array[(Int, Int)] = this.randomizedY.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray.sortBy { case (_, d) => d }
-  // In certain algorithms, reduce the minority class is forbidden, so let's detect what class is it if the user don't
-  // set one at pleasure
+  // In certain algorithms, reduce the minority class is forbidden, so let's detect what class is it if the user don't set one at pleasure
   private[undersampling] val untouchableClass: Int = if (minorityClass == 0) this.counter.head._1 else if (minorityClass > this.randomizedY.length) throw new Exception("minorityClass is too big") else minorityClass
   // Extra information to obtain the Imbalanced Ratio
   private[undersampling] val minorityElements: Int = this.counter.head._2
