@@ -72,7 +72,7 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
           // it is added to store
           location(element._2) = 1
           changed = true
-        } else {E
+        } else {
           // otherwise, it is added to grabbag
           location(element._2) = -1
         }
