@@ -24,22 +24,22 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
   def sample(file: Option[String] = None, distance: Distances.Distance): (Array[Array[Double]], Array[Int], Array[Int]) = {
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.randomizedX.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
     }
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
-    val location: Array[Int] = List.fill(this.normalizedData.length)(0).toArray
+    val location: Array[Int] = List.fill(this.randomizedX.length)(0).toArray
     var iteration: Int = 0
     // The first element is added to store
     location(0) = 1
     var changed = true
 
     // Iterate the data, x (except the first instance)
-    for (element <- this.normalizedData.zipWithIndex.slice(1, this.normalizedData.length)) {
+    for (element <- this.randomizedX.zipWithIndex.slice(1, this.randomizedX.length)) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-      val label: Int = nnRule(data = index map this.normalizedData, labels = index map this.randomizedY,
+      val label: Int = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
         newInstance = element._1, newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
       // If it is no well classified or is a element of the minority class
       if (label != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
@@ -65,8 +65,8 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
       // Now, instead of iterating x, we iterate grabbag
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-        val label: Int = nnRule(data = index map this.normalizedData, labels = index map this.randomizedY,
-          newInstance = this.normalizedData(element._2), newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
+        val label: Int = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
+          newInstance = this.randomizedX(element._2), newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
         // If it is no well classified or is a element of the minority class
         if (label != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
           // it is added to store
