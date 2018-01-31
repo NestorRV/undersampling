@@ -41,7 +41,7 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
-      // Save the logk
+      // Save the log
       this.logger.storeFile(file.get + "_RU")
     }
 

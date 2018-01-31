@@ -22,7 +22,7 @@ private[undersampling] class Logger {
     try {
       this.log(category) += msg
     } catch {
-      case e: Exception => throw new Exception("Category not found in logger.")
+      case _: Exception => throw new Exception("Category not found in logger.")
     }
   }
 
