@@ -26,12 +26,6 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
     * @return reduced data, reduced labels, index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (Array[Array[Double]], Array[Int], Array[Int]) = {
-    if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
-      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
-    }
-
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = this.randomizedY.indices.toArray
 
@@ -52,6 +46,10 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
     }
 
     if (file.isDefined) {
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
+
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
