@@ -2,6 +2,8 @@ package undersampling.core
 
 import undersampling.util.Utilities.{Distances, nnRule}
 
+import scala.collection.mutable.ArrayBuffer
+
 /** Edited Nearest Neighbor rule
   *
   * @param x             data to work with
@@ -30,21 +32,21 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
     }
 
-    var selectedElements: Array[Int] = this.randomizedY.indices.toArray
+    val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = this.randomizedY.indices.toArray
 
     for (index <- indices) {
       // don't process the element if it is from the untouchableClass
       if (this.randomizedY(index) != this.untouchableClass) {
-        // selectedElements.diff(List(index)) is to exclude the actual element -> LeaveOneOut
-        val label: Int = nnRule(data = selectedElements.diff(List(index)) map this.randomizedX,
-          labels = selectedElements.diff(List(index)) map this.randomizedY, newInstance = this.randomizedX(index),
+        // indices.diff(List(index)) is to exclude the actual element -> LeaveOneOut
+        val label: Int = nnRule(data = indices.diff(List(index)) map this.randomizedX,
+          labels = indices.diff(List(index)) map this.randomizedY, newInstance = this.randomizedX(index),
           newInstanceLabel = this.randomizedY(index), k = k, distance = distance)
 
-        // if the label does not match
-        if (label != this.randomizedY(index)) {
-          // remove it
-          selectedElements = selectedElements.diff(List(index))
+        // if the label matches (it is well classified)
+        if (label == this.randomizedY(index)) {
+          // the element is useful
+          selectedElements += index
         }
       }
     }
@@ -54,7 +56,7 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
       // Recount of classes
-      val newCounter: Array[(Int, Int)] = (selectedElements map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      val newCounter: Array[(Int, Int)] = (selectedElements.toArray map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(selectedElements.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (selectedElements.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
@@ -63,6 +65,6 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
       this.logger.storeFile(file.get + "_ENN")
     }
 
-    (selectedElements map this.randomizedX, selectedElements map this.randomizedY, selectedElements)
+    (selectedElements.toArray map this.randomizedX, selectedElements.toArray map this.randomizedY, selectedElements.toArray)
   }
 }
