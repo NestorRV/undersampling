@@ -55,19 +55,29 @@ object Utilities {
     * @param newInstanceLabel label of the new point to classify
     * @param k                number of neighbors to consider
     * @param distance         distance to use. Available in enumeration Distances. SAMELABELS by default
-    * @return the label associated to newPoint
+    * @param getIndex         if getIndex is true, the index of the k-nearest neighbours will be returned, None is returned otherwise
+    * @return the label associated to newPoint and, if getIndex is true, the index of the k-nearest neighbours, else None
     */
-  def nnRule(data: Array[Array[Double]], labels: Array[Int], newInstance: Array[Double], newInstanceLabel: Int, k: Int, distance: Distances.Distance = Distances.SAMELABELS): Int = {
+  def nnRule(data: Array[Array[Double]], labels: Array[Int], newInstance: Array[Double], newInstanceLabel: Int, k: Int,
+             distance: Distances.Distance = Distances.SAMELABELS, getIndex: Boolean = false): (Int, Option[Array[Int]]) = {
     if (distance == Distances.SAMELABELS) {
       val distances: Array[(Int, Int)] = labels.map((x: Int) => sameLabelsDistance(x, newInstanceLabel)).zipWithIndex.sortBy { case (d, _) => d }
       val bestDistances: Array[(Int, Int)] = distances.slice(0, if (k > data.length) data.length else k)
       val index: Array[Int] = bestDistances.map((d: (Int, Int)) => d._2)
-      mode(index map labels)
+      if (getIndex) {
+        (mode(index map labels), Option(index))
+      } else {
+        (mode(index map labels), None)
+      }
     } else if (distance == Distances.EUCLIDEAN) {
       val distances: Array[(Double, Int)] = data.map((x: Array[Double]) => euclideanDistance(x, newInstance)).zipWithIndex.sortBy { case (d, _) => d }
       val bestDistances: Array[(Double, Int)] = distances.slice(0, if (k > data.length) data.length else k)
       val index: Array[Int] = bestDistances.map((d: (Double, Int)) => d._2)
-      mode(index map labels)
+      if (getIndex) {
+        (mode(index map labels), Option(index))
+      } else {
+        (mode(index map labels), None)
+      }
     } else {
       throw new Exception("Incorrect parameter: distance")
     }

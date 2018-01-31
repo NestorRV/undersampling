@@ -39,10 +39,10 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
     for (element <- this.randomizedX.zipWithIndex.slice(1, this.randomizedX.length)) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-      val label: Int = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
+      val label: (Int, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
         newInstance = element._1, newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
       // If it is no well classified or is a element of the minority class
-      if (label != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
+      if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
         // it is added to store
         location(element._2) = 1
       } else {
@@ -65,14 +65,14 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
       // Now, instead of iterating x, we iterate grabbag
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-        val label: Int = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
+        val label: (Int, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
           newInstance = this.randomizedX(element._2), newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
         // If it is no well classified or is a element of the minority class
-        if (label != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
+        if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
           // it is added to store
           location(element._2) = 1
           changed = true
-        } else {
+        } else {E
           // otherwise, it is added to grabbag
           location(element._2) = -1
         }
