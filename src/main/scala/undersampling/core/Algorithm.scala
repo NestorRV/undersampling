@@ -28,8 +28,8 @@ private[undersampling] class Algorithm(private[undersampling] val x: Array[Array
   private[undersampling] val maxV: Array[Double] = this.x.transpose.map((x: Array[Double]) => x.max)
   private[undersampling] val minV: Array[Double] = this.x.transpose.map((x: Array[Double]) => x.min)
   // Normalize the data as follow: for each column, x, (x-min(x))/(max(x)-min(x))
-  private[undersampling] var normalizedData: Array[Array[Double]] = (this.x.transpose zip (this.minV zip this.maxV)).map((row: (Array[Double], (Double, Double))) =>
-    row._1.map((e: Double) => e - row._2._1 / (row._2._2 / row._2._1))).transpose
+  private[undersampling] var normalizedData: Array[Array[Double]] = (this.x.transpose zip (this.minV zip this.maxV)).map((tuple: (Array[Double], (Double, Double))) =>
+    tuple._1.map((element: Double) => (element - tuple._2._1).toFloat / (tuple._2._2 - tuple._2._1))).transpose
   // Shuffle the data to make it random
   private[undersampling] var random: Random = new util.Random(seed)
   private[undersampling] var index: List[Int] = this.random.shuffle(this.y.indices.toList)
