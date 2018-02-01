@@ -65,6 +65,6 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
       this.logger.storeFile(file.get + "_ENN")
     }
 
-    (selectedElements.toArray map this.randomizedX, selectedElements.toArray map this.randomizedY, selectedElements.toArray)
+    (denormalizedData(selectedElements.toArray map this.randomizedX), selectedElements.toArray map this.randomizedY, selectedElements.toArray)
   }
 }

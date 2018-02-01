@@ -45,6 +45,6 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
       this.logger.storeFile(file.get + "_RU")
     }
 
-    (finalIndex map this.randomizedX, finalIndex map this.randomizedY, finalIndex)
+    (denormalizedData(finalIndex map this.randomizedX), finalIndex map this.randomizedY, finalIndex)
   }
 }

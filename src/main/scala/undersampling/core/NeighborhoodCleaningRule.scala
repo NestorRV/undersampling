@@ -86,6 +86,6 @@ class NeighborhoodCleaningRule(override private[undersampling] val x: Array[Arra
       this.logger.storeFile(file.get + "_NCL")
     }
 
-    (finalIndex map this.randomizedX, finalIndex map this.randomizedY, finalIndex)
+    (denormalizedData(finalIndex map this.randomizedX), finalIndex map this.randomizedY, finalIndex)
   }
 }

@@ -102,6 +102,6 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
       this.logger.storeFile(file.get + "_CNN")
     }
 
-    (store, storeClasses, storeIndex)
+    (denormalizedData(store), storeClasses, storeIndex)
   }
 }

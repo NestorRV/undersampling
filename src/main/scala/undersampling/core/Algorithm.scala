@@ -58,4 +58,13 @@ private[undersampling] class Algorithm(private[undersampling] val x: Array[Array
   def imbalancedRatio(counter: Array[(Int, Int)]): Float = {
     (counter.map((_: (Int, Int))._2).sum.toFloat - this.minorityElements) / this.minorityElements
   }
+
+  /** Denormalize the data to return the data untouched
+    *
+    * @param x data to work with
+    * @return data denormalized
+    */
+  def denormalizedData(x: Array[Array[Double]]): Array[Array[Double]] = {
+    (x.transpose zip (this.minV zip this.maxV)).map((tuple: (Array[Double], (Double, Double))) => tuple._1.map((element: Double) => tuple._2._1 + element * (tuple._2._2 - tuple._2._1))).transpose
+  }
 }
