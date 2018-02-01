@@ -22,6 +22,8 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
     * @return reduced data, reduced labels, index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance): (Array[Array[Double]], Array[Int], Array[Int]) = {
+    // Original paper: "The Condensed Nearest Neighbor Rule" by P. Hart.
+
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.randomizedX.length))

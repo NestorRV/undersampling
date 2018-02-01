@@ -26,6 +26,8 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
     * @return reduced data, reduced labels, index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (Array[Array[Double]], Array[Int], Array[Int]) = {
+    // Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
+
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = this.randomizedY.indices.toArray
 

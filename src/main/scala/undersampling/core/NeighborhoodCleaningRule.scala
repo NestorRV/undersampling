@@ -26,7 +26,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val x: Array[Arra
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (Array[Array[Double]], Array[Int], Array[Int]) = {
     // Note: the notation used to refers the subsets of data is the original one.
-    // See "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
+    // Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
 
     // index of the element of the interest class
     val indexC: Array[Int] = this.randomizedY.indices.toArray.filter((label: Int) => this.randomizedY(label) == this.untouchableClass)
