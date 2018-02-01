@@ -91,7 +91,7 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
 
     if (file.isDefined) {
       // Recount of classes
-      val newCounter: Array[(Int, Int)] = storeClasses.groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      val newCounter: Array[(Int, Int)] = storeClasses.groupBy(identity).mapValues((_: Array[Int]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio

@@ -36,7 +36,7 @@ class RandomUndersampling(override private[undersampling] val x: Array[Array[Dou
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
       // Recount of classes
-      val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Int]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio

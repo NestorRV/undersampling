@@ -54,7 +54,7 @@ class EditedNearestNeighbor(override private[undersampling] val x: Array[Array[D
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
       // Recount of classes
-      val newCounter: Array[(Int, Int)] = (selectedElements.toArray map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      val newCounter: Array[(Int, Int)] = (selectedElements.toArray map this.randomizedY).groupBy(identity).mapValues((_: Array[Int]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(selectedElements.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (selectedElements.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
