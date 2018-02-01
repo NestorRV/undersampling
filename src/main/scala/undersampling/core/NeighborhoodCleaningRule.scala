@@ -25,11 +25,8 @@ class NeighborhoodCleaningRule(override private[undersampling] val x: Array[Arra
     * @return reduced data, reduced labels, index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (Array[Array[Double]], Array[Int], Array[Int]) = {
-    if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
-      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
-    }
+    // Note: the notation used to refers the subsets of data is the original one.
+    // See "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
 
     // index of the element of the interest class
     val indexC: Array[Int] = this.randomizedY.indices.toArray.filter((label: Int) => this.randomizedY(label) == this.untouchableClass)
@@ -48,7 +45,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val x: Array[Arra
     val sizeOfClasses: Array[Int] = this.randomizedY.groupBy(identity).mapValues((_: Array[Int]).length).toArray.sortBy((count: (Int, Int)) => count._1).collect { case (c, s) => s }
     val sizeC: Int = indexC.length
 
-    // search for eleements in O that misclassify elements in C
+    // search for elements in O that misclassify elements in C
     for (index <- indexC) {
       // try to classify all the elements in C using O
       val label: (Int, Option[Array[Int]]) = nnRule(data = indexO map this.randomizedX, labels = indexO map this.randomizedY,
@@ -73,9 +70,23 @@ class NeighborhoodCleaningRule(override private[undersampling] val x: Array[Arra
     }
 
     // final index is allData - (indexA1 union indexA2)
-    val finalIndex: Array[Int] = randomizedY.indices.toArray.diff((indexA1.toList ++ indexA2.toArray).distinct.toArray)
-    // TODO log process
-    // TODO return unnormalized data
+    val finalIndex: Array[Int] = this.randomizedY.indices.diff(indexA1).diff(indexA2).toArray
+
+    if (file.isDefined) {
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
+
+      // Recount of classes
+      val newCounter: Array[(Int, Int)] = (finalIndex map this.randomizedY).groupBy((l: Int) => l).map((t: (Int, Array[Int])) => (t._1, t._2.length)).toArray
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
+      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      // Recompute the Imbalanced Ratio
+      this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the log
+      this.logger.storeFile(file.get + "_NCL")
+    }
+
     (finalIndex map this.randomizedX, finalIndex map this.randomizedY, finalIndex)
   }
 }
