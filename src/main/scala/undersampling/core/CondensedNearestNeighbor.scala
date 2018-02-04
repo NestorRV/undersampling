@@ -1,27 +1,25 @@
 package undersampling.core
 
+import undersampling.data.UndersamplingData
 import undersampling.util.Utilities._
 
 /** Condensed Nearest Neighbor decision rule
   *
-  * @param x             data to work with
-  * @param y             labels of the data associated with x
-  * @param seed          seed to use. If it is not provided, it will use the system time
-  * @param minorityClass integer representing the class to keep it untouched
+  * @param data data to work with
+  * @param seed seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-class CondensedNearestNeighbor(override private[undersampling] val x: Array[Array[Double]],
-                               override private[undersampling] val y: Array[Int],
-                               override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                               minorityClass: Int = 0) extends Algorithm(x, y, seed, minorityClass) {
+class CondensedNearestNeighbor(override private[undersampling] val data: UndersamplingData,
+                               override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
 
   /** Compute the Condensed Nearest Neighbor decision rule (CNN rule)
     *
-    * @param file     file to store the log. If its set to None, log process would not be done
-    * @param distance distance to use when calling the NNRule algorithm
-    * @return reduced data, reduced labels, index of elements kept
+    * @param file        file to store the log. If its set to None, log process would not be done
+    * @param distance    distance to use when calling the NNRule algorithm
+    * @param denormalize allow to indicate if you need the data denormalized
+    * @return UndersamplingData structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance): (Array[Array[Double]], Array[Int], Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance, denormalize: Boolean = true): (UndersamplingData, Array[Int]) = {
     // Original paper: "The Condensed Nearest Neighbor Rule" by P. Hart.
 
     if (file.isDefined) {
@@ -41,7 +39,7 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
     for (element <- this.randomizedX.zipWithIndex.slice(1, this.randomizedX.length)) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-      val label: (Int, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
+      val label: (Any, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
         newInstance = element._1, newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
       // If it is no well classified or is a element of the minority class
       if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
@@ -67,7 +65,7 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
       // Now, instead of iterating x, we iterate grabbag
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-        val label: (Int, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
+        val label: (Any, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
           newInstance = this.randomizedX(element._2), newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
         // If it is no well classified or is a element of the minority class
         if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
@@ -89,11 +87,11 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
     // The final data is the content of store
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
     val store: Array[Array[Double]] = storeIndex map this.randomizedX
-    val storeClasses: Array[Int] = storeIndex map this.randomizedY
+    val storeClasses: Array[Any] = storeIndex map this.randomizedY
 
     if (file.isDefined) {
       // Recount of classes
-      val newCounter: Array[(Int, Int)] = storeClasses.groupBy(identity).mapValues((_: Array[Int]).length).toArray
+      val newCounter: Array[(Any, Int)] = storeClasses.groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
@@ -102,6 +100,13 @@ class CondensedNearestNeighbor(override private[undersampling] val x: Array[Arra
       this.logger.storeFile(file.get + "_CNN")
     }
 
-    (denormalizedData(store), storeClasses, storeIndex)
+    if (denormalize)
+      this.data._resultData = denormalizedData(store)
+    else
+      this.data._resultData = store
+
+    this.data._resultClasses = storeClasses
+
+    (this.data, storeIndex)
   }
 }

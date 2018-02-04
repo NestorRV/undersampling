@@ -1,5 +1,6 @@
 package undersampling.util
 
+import scala.collection.mutable
 import scala.math.{pow, sqrt}
 
 /** Set of utilities functions
@@ -22,8 +23,18 @@ object Utilities {
     * @param data array to compute the mode
     * @return the mode of the array
     */
-  def mode(data: Array[Int]): Int = {
-    data.groupBy((i: Int) => i).mapValues((_: Array[Int]).length).maxBy((_: (Int, Int))._2)._1
+  def mode(data: Array[Any]): Any = {
+    val uniqueValues: Array[Any] = data.distinct
+    val dict: mutable.Map[Any, Int] = collection.mutable.Map[Any, Int]()
+    for (value <- uniqueValues) {
+      dict += (value -> 0)
+    }
+
+    for (e <- data) {
+      dict(e) += 1
+    }
+
+    dict.toSeq.sortBy((_: (Any, Int))._2).reverse.head._1
   }
 
   /** Compute the sameLabelsDistance. If two elements has the same label,
@@ -33,7 +44,7 @@ object Utilities {
     * @param secondLabel label of the second element
     * @return sameLabelsDistance between two points
     */
-  def sameLabelsDistance(firstLabel: Int, secondLabel: Int): Int = {
+  def sameLabelsDistance(firstLabel: Any, secondLabel: Any): Int = {
     if (firstLabel == secondLabel) 0 else 1
   }
 
@@ -58,10 +69,10 @@ object Utilities {
     * @param getIndex         if getIndex is true, the index of the k-nearest neighbours will be returned, None is returned otherwise
     * @return the label associated to newPoint and, if getIndex is true, the index of the k-nearest neighbours, else None
     */
-  def nnRule(data: Array[Array[Double]], labels: Array[Int], newInstance: Array[Double], newInstanceLabel: Int, k: Int,
-             distance: Distances.Distance = Distances.SAMELABELS, getIndex: Boolean = false): (Int, Option[Array[Int]]) = {
+  def nnRule(data: Array[Array[Double]], labels: Array[Any], newInstance: Array[Double], newInstanceLabel: Any, k: Int,
+             distance: Distances.Distance = Distances.SAMELABELS, getIndex: Boolean = false): (Any, Option[Array[Int]]) = {
     if (distance == Distances.SAMELABELS) {
-      val distances: Array[(Int, Int)] = labels.map((x: Int) => sameLabelsDistance(x, newInstanceLabel)).zipWithIndex.sortBy { case (d, _) => d }
+      val distances: Array[(Int, Int)] = labels.map((x: Any) => sameLabelsDistance(x, newInstanceLabel)).zipWithIndex.sortBy { case (d, _) => d }
       val bestDistances: Array[(Int, Int)] = distances.slice(0, if (k > data.length) data.length else k)
       val index: Array[Int] = bestDistances.map((d: (Int, Int)) => d._2)
       if (getIndex) {

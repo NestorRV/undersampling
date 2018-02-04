@@ -1,6 +1,6 @@
 name := "undersampling"
 
-version := "0.1"
+version := "1.0"
 
 organization := "com.github.NestorRV"
 
@@ -13,5 +13,3 @@ scalacOptions in(Compile, doc) ++= Opts.doc.title("undersampling")
 scalacOptions += "-deprecation"
 scalacOptions += "-unchecked"
 scalacOptions += "-feature"
-
-libraryDependencies += "com.github.haifengl" %% "smile-scala" % "1.5.0"
