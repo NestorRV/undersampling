@@ -16,7 +16,13 @@ class DelimitedTextWriter {
     pr.write(data._header.mkString(data._delimiter) + "\n")
 
     for (row <- data._resultData zip data._resultClasses) {
-      pr.write(row._1.mkString(data._delimiter) + "," + row._2 + "\n")
+      val naIndex: Array[Int] = row._1.zipWithIndex.filter((_: (Any, Int))._1 == "undersampling_NA").map((_: (Any, Int))._2)
+      val newRow: Array[Any] = row._1.clone()
+      for(index <- naIndex){
+        newRow(index) = data._missing
+      }
+
+      pr.write(newRow.mkString(data._delimiter) + "," + row._2 + "\n")
     }
 
     pr.close()
