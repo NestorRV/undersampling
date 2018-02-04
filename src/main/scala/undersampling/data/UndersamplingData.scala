@@ -24,7 +24,7 @@ class UndersamplingData {
   // classes associated to the file (y)
   private[undersampling] var _originalClasses: Array[Any] = _
   // data obtained after applying an algorithm
-  private[undersampling] var _resultData: Array[Array[Double]] = _
+  private[undersampling] var _resultData: Array[Array[Any]] = _
   // classes obtained after applying an algorithm
   private[undersampling] var _resultClasses: Array[Any] = _
 
@@ -45,7 +45,7 @@ class UndersamplingData {
     *
     * @return read data
     */
-  def resultData: Array[Array[Double]] = _resultData
+  def resultData: Array[Array[Any]] = _resultData
 
   /** resultClasses getter
     *

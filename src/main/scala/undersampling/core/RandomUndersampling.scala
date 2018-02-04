@@ -15,10 +15,9 @@ class RandomUndersampling(override private[undersampling] val data: Undersamplin
     *
     * @param file             file to store the log. If its set to None, log process would not be done
     * @param numberOfElements number of elements to preserve from the majority class
-    * @param denormalize      allow to indicate if you need the data denormalized
     * @return UndersamplingData structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, numberOfElements: Int, denormalize: Boolean = true): (UndersamplingData, Array[Int]) = {
+  def sample(file: Option[String] = None, numberOfElements: Int): (UndersamplingData, Array[Int]) = {
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = this.randomizedY.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // It is not possible to select more elements than the available
@@ -42,13 +41,9 @@ class RandomUndersampling(override private[undersampling] val data: Undersamplin
       this.logger.storeFile(file.get + "_RU")
     }
 
-    if (denormalize)
-      this.data._resultData = denormalizedData(finalIndex map this.randomizedX)
-    else
-      this.data._resultData = finalIndex map this.randomizedX
+    this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
 
-    this.data._resultClasses = finalIndex map this.randomizedY
-
-    (this.data, finalIndex)
+    (this.data, (finalIndex map this.index).sorted)
   }
 }

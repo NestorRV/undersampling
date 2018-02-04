@@ -16,10 +16,9 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Undersa
     *
     * @param file        file to store the log. If its set to None, log process would not be done
     * @param distance    distance to use when calling the NNRule algorithm
-    * @param denormalize allow to indicate if you need the data denormalized
     * @return UndersamplingData structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, denormalize: Boolean = true): (UndersamplingData, Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance): (UndersamplingData, Array[Int]) = {
     // Original paper: "The Condensed Nearest Neighbor Rule" by P. Hart.
 
     if (file.isDefined) {
@@ -87,11 +86,10 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Undersa
     // The final data is the content of store
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
     val store: Array[Array[Double]] = storeIndex map this.randomizedX
-    val storeClasses: Array[Any] = storeIndex map this.randomizedY
 
     if (file.isDefined) {
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = storeClasses.groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Array[(Any, Int)] = (storeIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
@@ -100,13 +98,9 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Undersa
       this.logger.storeFile(file.get + "_CNN")
     }
 
-    if (denormalize)
-      this.data._resultData = denormalizedData(store)
-    else
-      this.data._resultData = store
+    this.data._resultData = (storeIndex map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (storeIndex map this.index).sorted map this.data._originalClasses
 
-    this.data._resultClasses = storeClasses
-
-    (this.data, storeIndex)
+    (this.data, (storeIndex map this.index).sorted)
   }
 }

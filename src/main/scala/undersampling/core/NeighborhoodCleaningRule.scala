@@ -44,7 +44,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Undersa
     auxData._originalClasses = indexO map this.randomizedY
     val enn = new EditedNearestNeighbor(auxData)
     enn.setUntouchableClass(this.untouchableClass)
-    val resultENN: (UndersamplingData, Array[Int]) = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k, denormalize = false)
+    val resultENN: (UndersamplingData, Array[Int]) = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k)
     // noisy elements are the ones that are removed
     val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._2.toList).toArray
 
@@ -95,13 +95,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Undersa
       this.logger.storeFile(file.get + "_NCL")
     }
 
-    if (denormalize)
-      this.data._resultData = denormalizedData(finalIndex map this.randomizedX)
-    else
-      this.data._resultData = finalIndex map this.randomizedX
+    this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
 
-    this.data._resultClasses = finalIndex map this.randomizedY
-
-    (this.data, finalIndex)
+    (this.data, (finalIndex map this.index).sorted)
   }
 }

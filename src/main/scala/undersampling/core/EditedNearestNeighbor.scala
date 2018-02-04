@@ -20,10 +20,9 @@ class EditedNearestNeighbor(override private[undersampling] val data: Undersampl
     * @param file        file to store the log. If its set to None, log process would not be done
     * @param distance    distance to use when calling the NNRule algorithm
     * @param k           number of neighbors to use when computing k-NN rule (normally 3 neighbors)
-    * @param denormalize allow to indicate if you need the data denormalized
     * @return UndersamplingData structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, denormalize: Boolean = true): (UndersamplingData, Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (UndersamplingData, Array[Int]) = {
     // Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited UndersamplingData" by Dennis L. Wilson.
 
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
@@ -63,13 +62,9 @@ class EditedNearestNeighbor(override private[undersampling] val data: Undersampl
       this.logger.storeFile(file.get + "_ENN")
     }
 
-    if (denormalize)
-      this.data._resultData = denormalizedData(selectedElements.toArray map this.randomizedX)
-    else
-      this.data._resultData = selectedElements.toArray map this.randomizedX
+    this.data._resultData = (selectedElements.toArray map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (selectedElements.toArray map this.index).sorted map this.data._originalClasses
 
-    this.data._resultClasses = selectedElements.toArray map this.randomizedY
-
-    (this.data, selectedElements.toArray)
+    (this.data, (selectedElements.toArray map this.index).sorted)
   }
 }
