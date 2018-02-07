@@ -1,6 +1,6 @@
 package undersampling.core
 
-import undersampling.data.UndersamplingData
+import undersampling.data.Data
 
 /** Compute a random undersampling.
   *
@@ -8,16 +8,16 @@ import undersampling.data.UndersamplingData
   * @param seed seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-class RandomUndersampling(override private[undersampling] val data: UndersamplingData,
+class RandomUndersampling(override private[undersampling] val data: Data,
                           override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
 
   /** This algorithm preserve, at least, numberOfElements elements from the majority class
     *
     * @param file             file to store the log. If its set to None, log process would not be done
     * @param numberOfElements number of elements to preserve from the majority class
-    * @return UndersamplingData structure with all the important information and index of elements kept
+    * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, numberOfElements: Int): (UndersamplingData, Array[Int]) = {
+  def sample(file: Option[String] = None, numberOfElements: Int): (Data, Array[Int]) = {
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = this.randomizedY.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // It is not possible to select more elements than the available

@@ -1,6 +1,6 @@
 package undersampling.core
 
-import undersampling.data.UndersamplingData
+import undersampling.data.Data
 import undersampling.io.Logger
 import undersampling.util.Utilities.mode
 
@@ -14,7 +14,7 @@ import scala.util.Random
   * @param seed seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-private[undersampling] class Algorithm(private[undersampling] val data: UndersamplingData, private[undersampling] val seed: Long = System.currentTimeMillis()) {
+private[undersampling] class Algorithm(private[undersampling] val data: Data, private[undersampling] val seed: Long = System.currentTimeMillis()) {
   private[undersampling] val y: Array[Any] = data._originalClasses
   // Logger object to log the execution of the algorithms
   private[undersampling] val logger = new Logger
@@ -46,7 +46,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Undersam
     * @param data data to process
     * @return matrix of doubles containing the data.
     */
-  def processData(data: UndersamplingData): Array[Array[Double]] = {
+  def processData(data: Data): Array[Array[Double]] = {
     val processedData: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
 
     for (column <- data._originalData.transpose.zipWithIndex) {
@@ -69,7 +69,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Undersam
           processedData += array.map((_: Any).asInstanceOf[Double])
         } else {
           val m: Any = mode(nonNAIndex map column._1)
-          val array: Array[Any] = column._1
+          val array: Array[Any] = column._1.clone()
           // replace all the NA values with the mode
           for (index <- naIndex)
             array(index) = m
@@ -90,9 +90,22 @@ private[undersampling] class Algorithm(private[undersampling] val data: Undersam
           processedData += array.map((_: Any).asInstanceOf[Double])
         }
       } else {
-        // If there is no NA values, copy the column as it is
-        val array: Array[Double] = column._1.map((_: Any).asInstanceOf[Double])
-        processedData += array
+        // If there is no NA values
+        // we change them to numerical values (0, 1, 2, ..., N)
+        val uniqueValues: Array[Any] = column._1.distinct
+        val dict: mutable.Map[Any, Double] = collection.mutable.Map[Any, Double]()
+        var counter: Double = 0.0
+        for (value <- uniqueValues) {
+          dict += (value -> counter)
+          counter += 1.0
+        }
+
+        val array: Array[Any] = column._1.clone()
+        for (i <- array.indices) {
+          array(i) = dict(array(i))
+        }
+
+        processedData += array.map((_: Any).asInstanceOf[Double])
       }
     }
 

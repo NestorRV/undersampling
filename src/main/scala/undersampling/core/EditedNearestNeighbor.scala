@@ -1,6 +1,6 @@
 package undersampling.core
 
-import undersampling.data.UndersamplingData
+import undersampling.data.Data
 import undersampling.util.Utilities.{Distances, nnRule}
 
 import scala.collection.mutable.ArrayBuffer
@@ -11,19 +11,19 @@ import scala.collection.mutable.ArrayBuffer
   * @param seed seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-class EditedNearestNeighbor(override private[undersampling] val data: UndersamplingData,
+class EditedNearestNeighbor(override private[undersampling] val data: Data,
                             override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
 
 
   /** Compute the Edited Nearest Neighbor rule (ENN rule)
     *
-    * @param file        file to store the log. If its set to None, log process would not be done
-    * @param distance    distance to use when calling the NNRule algorithm
-    * @param k           number of neighbors to use when computing k-NN rule (normally 3 neighbors)
-    * @return UndersamplingData structure with all the important information and index of elements kept
+    * @param file     file to store the log. If its set to None, log process would not be done
+    * @param distance distance to use when calling the NNRule algorithm
+    * @param k        number of neighbors to use when computing k-NN rule (normally 3 neighbors)
+    * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (UndersamplingData, Array[Int]) = {
-    // Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited UndersamplingData" by Dennis L. Wilson.
+  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): (Data, Array[Int]) = {
+    // Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
 
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = this.randomizedY.indices.toArray

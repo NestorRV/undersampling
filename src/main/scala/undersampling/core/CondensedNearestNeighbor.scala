@@ -1,6 +1,6 @@
 package undersampling.core
 
-import undersampling.data.UndersamplingData
+import undersampling.data.Data
 import undersampling.util.Utilities._
 
 /** Condensed Nearest Neighbor decision rule
@@ -9,16 +9,16 @@ import undersampling.util.Utilities._
   * @param seed seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-class CondensedNearestNeighbor(override private[undersampling] val data: UndersamplingData,
+class CondensedNearestNeighbor(override private[undersampling] val data: Data,
                                override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
 
   /** Compute the Condensed Nearest Neighbor decision rule (CNN rule)
     *
-    * @param file        file to store the log. If its set to None, log process would not be done
-    * @param distance    distance to use when calling the NNRule algorithm
-    * @return UndersamplingData structure with all the important information and index of elements kept
+    * @param file     file to store the log. If its set to None, log process would not be done
+    * @param distance distance to use when calling the NNRule algorithm
+    * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance): (UndersamplingData, Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance): (Data, Array[Int]) = {
     // Original paper: "The Condensed Nearest Neighbor Rule" by P. Hart.
 
     if (file.isDefined) {
@@ -85,7 +85,6 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Undersa
 
     // The final data is the content of store
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
-    val store: Array[Array[Double]] = storeIndex map this.randomizedX
 
     if (file.isDefined) {
       // Recount of classes

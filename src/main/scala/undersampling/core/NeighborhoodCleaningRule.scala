@@ -1,6 +1,6 @@
 package undersampling.core
 
-import undersampling.data.UndersamplingData
+import undersampling.data.Data
 import undersampling.util.Utilities.{Distances, nnRule}
 
 import scala.collection.mutable.ArrayBuffer
@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
   * @param seed seed to use. If it is not provided, it will use the system time
   * @author Néstor Rodríguez Vico
   */
-class NeighborhoodCleaningRule(override private[undersampling] val data: UndersamplingData,
+class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
                                override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
 
   /** Compute the Neighborhood Cleaning Rule (NCL)
@@ -20,9 +20,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Undersa
     * @param distance    distance to use when calling the NNRule algorithm
     * @param k           number of neighbors to use when computing k-NN rule (normally 3 neighbors)
     * @param denormalize allow to indicate if you need the data denormalized
-    * @return UndersamplingData structure with all the important information and index of elements kept
+    * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, denormalize: Boolean = true): (UndersamplingData, Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, denormalize: Boolean = true): (Data, Array[Int]) = {
     // Note: the notation used to refers the subsets of data is the original one.
     // Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
 
@@ -32,19 +32,11 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Undersa
     val indexO: Array[Int] = this.randomizedY.indices.toArray.diff(indexC.toList)
 
     // look for noisy elements in O
-    val auxData: UndersamplingData = new UndersamplingData
-    auxData._file = this.data._file
-    auxData._comment = this.data._comment
-    auxData._delimiter = this.data._delimiter
-    auxData._missing = this.data._missing
-    auxData._header = this.data._header
-    auxData._columnClass = this.data._columnClass
-    auxData._nominal = this.data._nominal
-    auxData._originalData = toXData(indexO map this.randomizedX)
-    auxData._originalClasses = indexO map this.randomizedY
+    val auxData: Data = new Data(_file = this.data._file, _comment = this.data._comment, _columnClass = this.data._columnClass,
+      _nominal = this.data._nominal, _originalData = toXData(indexO map this.randomizedX), _originalClasses = indexO map this.randomizedY)
     val enn = new EditedNearestNeighbor(auxData)
     enn.setUntouchableClass(this.untouchableClass)
-    val resultENN: (UndersamplingData, Array[Int]) = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k)
+    val resultENN: (Data, Array[Int]) = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k)
     // noisy elements are the ones that are removed
     val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._2.toList).toArray
 
