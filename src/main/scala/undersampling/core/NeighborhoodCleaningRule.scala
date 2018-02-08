@@ -19,10 +19,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     * @param file        file to store the log. If its set to None, log process would not be done
     * @param distance    distance to use when calling the NNRule algorithm
     * @param k           number of neighbors to use when computing k-NN rule (normally 3 neighbors)
-    * @param denormalize allow to indicate if you need the data denormalized
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, denormalize: Boolean = true): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
     // Note: the notation used to refers the subsets of data is the original one.
     // Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
 
