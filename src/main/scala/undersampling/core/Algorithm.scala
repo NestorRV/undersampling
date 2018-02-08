@@ -64,6 +64,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
 
           processedData += array.map((_: Any).asInstanceOf[Double])
         } else {
+          // compute the mode of the present values
           val m: Any = mode(nonNAIndex map column._1)
           val array: Array[Any] = column._1.clone()
           // replace all the NA values with the mode
@@ -87,6 +88,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
         }
       } else {
         // If there is no NA values
+        // If the column is not a nominal value
         if (data._nominal.contains(column._2)) {
           // we change them to numerical values (0, 1, 2, ..., N)
           val uniqueValues: Array[Any] = column._1.distinct
@@ -104,6 +106,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
 
           processedData += array.map((_: Any).asInstanceOf[Double])
         } else {
+          // Store the data as is
           processedData += column._1.map((_: Any).asInstanceOf[Double])
         }
       }
