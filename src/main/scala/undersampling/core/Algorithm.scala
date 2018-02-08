@@ -26,13 +26,9 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
   private[undersampling] val minorityElements: Int = this.counter.head._2
   private[undersampling] val majorityElements: Int = this.counter.tail.map((_: (Any, Int))._2).sum
   // Remove NA values and change nominal values to numeric values
-  private[undersampling] val x: Array[Array[Double]] = processData(data)
-  // Info to normalize the data
-  private[undersampling] val maxV: Array[Double] = this.x.transpose.map((col: Array[Double]) => col.max)
-  private[undersampling] val minV: Array[Double] = this.x.transpose.map((col: Array[Double]) => col.min)
-  // Normalize the data as follow: for each column, x, (x-min(x))/(max(x)-min(x))
-  private[undersampling] val normalizedData: Array[Array[Double]] = (this.x.transpose zip (this.minV zip this.maxV)).map((tuple: (Array[Double], (Double, Double))) =>
-    tuple._1.map((element: Double) => (element - tuple._2._1).toFloat / (tuple._2._2 - tuple._2._1))).transpose
+  private[undersampling] val x: Array[Array[Double]] = processData(this.data)
+  // We are going to use normalized values
+  private[undersampling] val normalizedData: Array[Array[Double]] = normalizeData(this.x)
   // Shuffle the data to make it random
   private[undersampling] val random: Random = new util.Random(seed)
   private[undersampling] val index: List[Int] = this.random.shuffle(this.y.indices.toList)
@@ -56,7 +52,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
       if (naIndex.length != 0) {
         // Take the index of the elements that are not NA
         val nonNAIndex: Array[Int] = column._1.zipWithIndex.filter((_: (Any, Int))._1 != "undersampling_NA").map((_: (Any, Int))._2)
-        // If the column is a nominal value
+        // If the column is not a nominal value
         if (!data._nominal.contains(column._2)) {
           // compute the mean of the present values
           val arrayDouble: Array[Double] = (nonNAIndex map column._1).map((_: Any).asInstanceOf[Double])
@@ -91,25 +87,45 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
         }
       } else {
         // If there is no NA values
-        // we change them to numerical values (0, 1, 2, ..., N)
-        val uniqueValues: Array[Any] = column._1.distinct
-        val dict: mutable.Map[Any, Double] = collection.mutable.Map[Any, Double]()
-        var counter: Double = 0.0
-        for (value <- uniqueValues) {
-          dict += (value -> counter)
-          counter += 1.0
-        }
+        if (data._nominal.contains(column._2)) {
+          // we change them to numerical values (0, 1, 2, ..., N)
+          val uniqueValues: Array[Any] = column._1.distinct
+          val dict: mutable.Map[Any, Double] = collection.mutable.Map[Any, Double]()
+          var counter: Double = 0.0
+          for (value <- uniqueValues) {
+            dict += (value -> counter)
+            counter += 1.0
+          }
 
-        val array: Array[Any] = column._1.clone()
-        for (i <- array.indices) {
-          array(i) = dict(array(i))
-        }
+          val array: Array[Any] = column._1.clone()
+          for (i <- array.indices) {
+            array(i) = dict(array(i))
+          }
 
-        processedData += array.map((_: Any).asInstanceOf[Double])
+          processedData += array.map((_: Any).asInstanceOf[Double])
+        } else {
+          processedData += column._1.map((_: Any).asInstanceOf[Double])
+        }
       }
     }
 
     processedData.toArray.transpose
+  }
+
+  /** Normalize the data as follow: for each column, x, (x-min(x))/(max(x)-min(x))
+    * This method only normalize not nominal columns
+    *
+    * @return normalized data
+    */
+  private[undersampling] def normalizeData(d: Array[Array[Double]]): Array[Array[Double]] = {
+    val maxV: Array[Double] = this.x.transpose.map((col: Array[Double]) => col.max)
+    val minV: Array[Double] = this.x.transpose.map((col: Array[Double]) => col.min)
+    val result: Array[Array[Double]] = d.transpose.clone()
+
+    for (index <- this.data._originalData.transpose.indices.diff(this.data._nominal)) {
+      result(index) = result(index).map((element: Double) => (element - minV(index)).toFloat / (maxV(index) - minV(index)))
+    }
+    result.transpose
   }
 
   /** Change the untouchable class. Needed for som algorithms
@@ -126,16 +142,6 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
     */
   def imbalancedRatio(counter: Array[(Any, Int)]): Float = {
     (counter.map((_: (Any, Int))._2).sum.toFloat - this.minorityElements) / this.minorityElements
-  }
-
-  /** Denormalize the data to return the data untouched
-    *
-    * @param x data to work with
-    * @return data denormalized
-    */
-  def denormalizedData(x: Array[Array[Double]]): Array[Array[Double]] = {
-    (x.transpose zip (this.minV zip this.maxV)).map((tuple: (Array[Double], (Double, Double))) => tuple._1.map((element: Double) =>
-      tuple._2._1 + element * (tuple._2._2 - tuple._2._1))).transpose
   }
 
   /** Convert a double matrix to a matrix of Any
