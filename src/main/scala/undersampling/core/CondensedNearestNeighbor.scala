@@ -16,9 +16,9 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
-    * @return Data structure with all the important information and index of elements kept
+    * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance): (Data, Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
     // Original paper: "The Condensed Nearest Neighbor Rule" by P. Hart.
 
     if (file.isDefined) {
@@ -35,7 +35,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     var changed = true
 
     // Iterate the data, x (except the first instance)
-    for (element <- this.randomizedX.zipWithIndex.slice(1, this.randomizedX.length)) {
+    for (element <- this.randomizedX.zipWithIndex.tail) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: (Any, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
@@ -99,7 +99,8 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
 
     this.data._resultData = (storeIndex map this.index).sorted map this.data._originalData
     this.data._resultClasses = (storeIndex map this.index).sorted map this.data._originalClasses
+    this.data._index = (storeIndex map this.index).sorted
 
-    (this.data, (storeIndex map this.index).sorted)
+    this.data
   }
 }

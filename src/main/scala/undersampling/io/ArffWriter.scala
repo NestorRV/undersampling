@@ -41,9 +41,3 @@ class ArffWriter {
     pr.close()
   }
 }
-
-
-
-
-
-

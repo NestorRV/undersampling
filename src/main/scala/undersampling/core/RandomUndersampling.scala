@@ -17,7 +17,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     * @param numberOfElements number of elements to preserve from the majority class
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, numberOfElements: Int): (Data, Array[Int]) = {
+  def sample(file: Option[String] = None, numberOfElements: Int): Data = {
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = this.randomizedY.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // It is not possible to select more elements than the available
@@ -43,7 +43,8 @@ class RandomUndersampling(override private[undersampling] val data: Data,
 
     this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
     this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
+    this.data._index = (finalIndex map this.index).sorted
 
-    (this.data, (finalIndex map this.index).sorted)
+    this.data
   }
 }

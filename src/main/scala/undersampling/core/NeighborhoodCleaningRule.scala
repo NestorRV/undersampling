@@ -22,7 +22,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     * @param denormalize allow to indicate if you need the data denormalized
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, denormalize: Boolean = true): (Data, Array[Int]) = {
+  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, denormalize: Boolean = true): Data = {
     // Note: the notation used to refers the subsets of data is the original one.
     // Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
 
@@ -36,9 +36,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
       _nominal = this.data._nominal, _originalData = toXData(indexO map this.randomizedX), _originalClasses = indexO map this.randomizedY)
     val enn = new EditedNearestNeighbor(auxData)
     enn.setUntouchableClass(this.untouchableClass)
-    val resultENN: (Data, Array[Int]) = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k)
+    val resultENN: Data = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k)
     // noisy elements are the ones that are removed
-    val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._2.toList).toArray
+    val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._index.toList).toArray
 
     val indexA2: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     // get the size of all the classes
@@ -89,7 +89,8 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
 
     this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
     this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
+    this.data._index = (finalIndex map this.index).sorted
 
-    (this.data, (finalIndex map this.index).sorted)
+    this.data
   }
 }

@@ -20,6 +20,8 @@ class Data private[undersampling](private[undersampling] val _file: String, priv
   private[undersampling] var _resultData: Array[Array[Any]] = _
   // classes obtained after applying an algorithm
   private[undersampling] var _resultClasses: Array[Any] = _
+  // index representing the kept elements
+  private[undersampling] var _index: Array[Int] = _
 
 
   /** originalData getter
@@ -45,4 +47,10 @@ class Data private[undersampling](private[undersampling] val _file: String, priv
     * @return read classes
     */
   def resultClasses: Array[Any] = _resultClasses
+
+  /** index of kept elements getter
+    *
+    * @return read classes
+    */
+  def index: Array[Int] = _index
 }

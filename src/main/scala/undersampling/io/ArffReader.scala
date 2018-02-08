@@ -8,7 +8,7 @@ import undersampling.data.{ArffData, Data}
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-/** Class to read arff File
+/** Class to read arff files
   *
   * @author Néstor Rodríguez Vico
   */
