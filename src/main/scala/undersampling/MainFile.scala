@@ -23,15 +23,15 @@ object MainFile {
       writer.storeFile(file = "./input/results/wdbc_RU.csv", data = resultRU.asInstanceOf[DelimitedTextData])
 
       val cnn = new CondensedNearestNeighbor(d)
-      val resultCNN: Data = cnn.sample(file = Option("./input/logs/wdbc"), distance = Distances.EUCLIDEAN)
+      val resultCNN: Data = cnn.sample(file = Option("./input/logs/wdbc"), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/wdbc_CNN.csv", data = resultCNN.asInstanceOf[DelimitedTextData])
 
       val enn = new EditedNearestNeighbor(d)
-      val resultENN: Data = enn.sample(file = Option("./input/logs/wdbc"), distance = Distances.EUCLIDEAN)
+      val resultENN: Data = enn.sample(file = Option("./input/logs/wdbc"), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/wdbc_ENN.csv", data = resultENN.asInstanceOf[DelimitedTextData])
 
       val ncl = new NeighborhoodCleaningRule(d)
-      val resultNCL: Data = ncl.sample(file = Option("./input/logs/wdbc"), distance = Distances.EUCLIDEAN)
+      val resultNCL: Data = ncl.sample(file = Option("./input/logs/wdbc"), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/wdbc_NCL.csv", data = resultNCL.asInstanceOf[DelimitedTextData])
     }
     else {
@@ -48,15 +48,15 @@ object MainFile {
         writer.storeFile(file = "./input/results/" + dataset + "_RU", data = resultRU.asInstanceOf[ArffData])
 
         val cnn = new CondensedNearestNeighbor(d)
-        val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+        val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
         writer.storeFile(file = "./input/results/" + dataset + "_CNN", data = resultCNN.asInstanceOf[ArffData])
 
         val enn = new EditedNearestNeighbor(d)
-        val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+        val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
         writer.storeFile(file = "./input/results/" + dataset + "_ENN", data = resultENN.asInstanceOf[ArffData])
 
         val ncl = new NeighborhoodCleaningRule(d)
-        val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+        val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
         writer.storeFile(file = "./input/results/" + dataset + "_NCL", data = resultNCL.asInstanceOf[ArffData])
       }
     }

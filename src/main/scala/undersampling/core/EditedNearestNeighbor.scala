@@ -34,7 +34,7 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
         // indices.diff(List(index)) is to exclude the actual element -> LeaveOneOut
         val label: (Any, Option[Array[Int]]) = nnRule(data = indices.diff(List(index)) map this.randomizedX,
           labels = indices.diff(List(index)) map this.randomizedY, newInstance = this.randomizedX(index),
-          newInstanceLabel = this.randomizedY(index), k = k, distance = distance)
+          nominalValues = this.data._nominal, k = k, distance = distance)
 
         // if the label matches (it is well classified)
         if (label._1 == this.randomizedY(index)) {

@@ -39,7 +39,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: (Any, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
-        newInstance = element._1, newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
+        newInstance = element._1, nominalValues = this.data._nominal, k = 1, distance = distance)
       // If it is no well classified or is a element of the minority class
       if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
         // it is added to store
@@ -65,7 +65,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
         val label: (Any, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
-          newInstance = this.randomizedX(element._2), newInstanceLabel = this.randomizedY(element._2), k = 1, distance = distance)
+          newInstance = this.randomizedX(element._2), nominalValues = this.data._nominal, k = 1, distance = distance)
         // If it is no well classified or is a element of the minority class
         if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
           // it is added to store

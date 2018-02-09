@@ -35,7 +35,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
       _nominal = this.data._nominal, _originalData = toXData(indexO map this.randomizedX), _originalClasses = indexO map this.randomizedY)
     val enn = new EditedNearestNeighbor(auxData)
     enn.setUntouchableClass(this.untouchableClass)
-    val resultENN: Data = enn.sample(file = None, distance = Distances.EUCLIDEAN, k = k)
+    val resultENN: Data = enn.sample(file = None, distance = Distances.EUCLIDEAN_NOMINAL, k = k)
     // noisy elements are the ones that are removed
     val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._index.toList).toArray
 
@@ -48,7 +48,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     for (index <- indexC) {
       // try to classify all the elements in C using O
       val label: (Any, Option[Array[Int]]) = nnRule(data = indexO map this.randomizedX, labels = indexO map this.randomizedY,
-        newInstance = this.randomizedX(index), newInstanceLabel = this.randomizedY(index), k = k, distance = distance, getIndex = true)
+        newInstance = this.randomizedX(index), nominalValues = this.data._nominal, k = k, distance = distance, getIndex = true)
 
       // if is misclassified
       if (label._1 != this.randomizedY(index)) {
