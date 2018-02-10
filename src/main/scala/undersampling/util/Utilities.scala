@@ -1,7 +1,7 @@
 package undersampling.util
 
 import scala.collection.mutable
-import scala.math.sqrt
+import scala.math.{sqrt, pow}
 
 /** Set of utilities functions
   *
@@ -43,12 +43,22 @@ object Utilities {
     *
     * @param xs            first element
     * @param ys            second element
-    * @param nominalValues array indicating the index of the nominal values
     * @return Euclidean Distance between xs and ys
     */
-  def euclideanDistance(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int]): Double = {
+  def euclideanDistance(xs: Array[Double], ys: Array[Double]): Double = {
+    sqrt((xs zip ys).map((pair: (Double, Double)) => pow(pair._2 - pair._1, 2)).sum)
+  }
+
+  /** Compute the Euclidean-Nominal Distance between two points
+    *
+    * @param xs            first element
+    * @param ys            second element
+    * @param nominalValues array indicating the index of the nominal values
+    * @return Euclidean-Nominal Distance between xs and ys
+    */
+  def euclideanNominalDistance(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int]): Double = {
     sqrt((xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>
-      if (nominalValues.contains(element._2)) if (element._1._2 == element._1._1) 0 else 1 else element._1._2 - element._1._1).sum)
+      if (nominalValues.contains(element._2)) if (element._1._2 == element._1._1) 0 else 1 else pow(element._1._2 - element._1._1, 2)).sum)
   }
 
   /** Decide the label of newInstance using the NNRule considering k neighbors of data set
@@ -65,13 +75,26 @@ object Utilities {
   def nnRule(data: Array[Array[Double]], labels: Array[Any], newInstance: Array[Double], nominalValues: Array[Int], k: Int,
              distance: Distances.Distance = Distances.EUCLIDEAN_NOMINAL, getIndex: Boolean = false): (Any, Option[Array[Int]]) = {
     if (distance == Distances.EUCLIDEAN_NOMINAL) {
-      val distances: Array[(Double, Int)] = data.map((x: Array[Double]) => euclideanDistance(x, newInstance, nominalValues)).zipWithIndex.sortBy { case (d, _) => d }
-      val bestDistances: Array[(Double, Int)] = distances.slice(0, if (k > data.length) data.length else k)
-      val index: Array[Int] = bestDistances.map((d: (Double, Int)) => d._2)
-      if (getIndex) {
-        (mode(index map labels), Option(index))
+      if (nominalValues.length != 0) {
+        // if there are nominal values
+        val distances: Array[(Double, Int)] = data.map((x: Array[Double]) => euclideanNominalDistance(x, newInstance, nominalValues)).zipWithIndex.sortBy { case (d, _) => d }
+        val bestDistances: Array[(Double, Int)] = distances.slice(0, if (k > data.length) data.length else k)
+        val index: Array[Int] = bestDistances.map((d: (Double, Int)) => d._2)
+        if (getIndex) {
+          (mode(index map labels), Option(index))
+        } else {
+          (mode(index map labels), None)
+        }
       } else {
-        (mode(index map labels), None)
+        // if there are not nominal values
+        val distances: Array[(Double, Int)] = data.map((x: Array[Double]) => euclideanDistance(x, newInstance)).zipWithIndex.sortBy { case (d, _) => d }
+        val bestDistances: Array[(Double, Int)] = distances.slice(0, if (k > data.length) data.length else k)
+        val index: Array[Int] = bestDistances.map((d: (Double, Int)) => d._2)
+        if (getIndex) {
+          (mode(index map labels), Option(index))
+        } else {
+          (mode(index map labels), None)
+        }
       }
     } else {
       throw new Exception("Incorrect parameter: distance")
