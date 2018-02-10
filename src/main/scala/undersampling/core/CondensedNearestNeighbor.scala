@@ -40,7 +40,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: (Any, Option[Array[Int]]) = nnRule(data = index map this.randomizedX, labels = index map this.randomizedY,
         newInstance = element._1, nominalValues = this.data._nominal, k = 1, distance = distance)
-      // If it is no well classified or is a element of the minority class
+      // If it is misclassified or is a element of the untouchable class
       if (label._1 != this.randomizedY(element._2) || this.randomizedY(element._2) == this.untouchableClass) {
         // it is added to store
         location(element._2) = 1
