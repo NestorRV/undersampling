@@ -17,7 +17,8 @@ class DelimitedTextWriter {
     */
   def storeFile(file: String, data: DelimitedTextData): Unit = {
     val pr = new PrintWriter(new File(file))
-    pr.write(data._header.mkString(data._delimiter) + "\n")
+    if (data._header != null)
+      pr.write(data._header.mkString(data._delimiter) + "\n")
 
     for (row <- data._resultData zip data._resultClasses) {
       val naIndex: Array[Int] = row._1.zipWithIndex.filter((_: (Any, Int))._1 == "undersampling_NA").map((_: (Any, Int))._2)

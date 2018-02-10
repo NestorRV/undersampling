@@ -31,7 +31,7 @@ class DelimitedTextReader {
     val response: Int = if (columnClass == -1) firstLine.split(delimiter).length - 1 else columnClass
     reader.reset()
 
-    val headerArray: Array[String] = if (header) reader.readLine.split(delimiter) else new Array[String](0)
+    val headerArray: Array[String] = if (header) reader.readLine.split(delimiter) else null
     var line: String = reader.readLine
     val readData: ArrayBuffer[Array[Any]] = new ArrayBuffer[Array[Any]](0)
     val readClasses: ArrayBuffer[Any] = new ArrayBuffer[Any](0)
@@ -43,8 +43,8 @@ class DelimitedTextReader {
       } else {
         val elements: Array[String] = line.split(delimiter)
 
-        if (elements.length != headerArray.length)
-          throw new ParseException("%d columns, expected %d".format(elements.length, headerArray.length), elements.length)
+        if (elements.length != firstLine.split(delimiter).length)
+          throw new ParseException("%d columns, expected %d".format(elements.length, firstLine.length), elements.length)
 
         val row = new ArrayBuffer[Any](0)
         for (e <- elements.zipWithIndex) {
