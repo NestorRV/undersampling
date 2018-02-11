@@ -10,8 +10,7 @@ import scala.collection.mutable.ArrayBuffer
   * @author Néstor Rodríguez Vico
   */
 private[undersampling] class Logger {
-  private[undersampling] val names: ArrayBuffer[String] = new ArrayBuffer[String](0)
-  private[undersampling] val log: mutable.Map[String, ArrayBuffer[String]] = collection.mutable.Map[String, ArrayBuffer[String]]()
+  private[undersampling] val log: mutable.LinkedHashMap[String, ArrayBuffer[String]] = mutable.LinkedHashMap[String, ArrayBuffer[String]]()
 
   /** Add a new message to the log
     *
@@ -39,8 +38,7 @@ private[undersampling] class Logger {
     * @param names categories to log
     */
   def setNames(names: List[String]): Unit = {
-    names.foreach((name: String) => this.names += name)
-    this.names.foreach((name: String) => this.log(name) = new ArrayBuffer[String](0))
+    names.foreach((name: String) => this.log(name) = new ArrayBuffer[String](0))
   }
 
   /** Store the logs into a file

@@ -1,7 +1,7 @@
 package undersampling.core
 
 import undersampling.data.Data
-import undersampling.util.Utilities.{Distances, nanoTimeToString, nnRule}
+import undersampling.util.Utilities._
 
 import scala.collection.mutable.ArrayBuffer
 

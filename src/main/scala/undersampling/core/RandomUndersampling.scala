@@ -1,7 +1,7 @@
 package undersampling.core
 
 import undersampling.data.Data
-import undersampling.util.Utilities.nanoTimeToString
+import undersampling.util.Utilities._
 
 /** Compute a random undersampling.
   *

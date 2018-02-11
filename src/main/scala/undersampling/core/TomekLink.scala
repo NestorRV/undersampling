@@ -78,7 +78,7 @@ class TomekLink(override private[undersampling] val data: Data,
     this.data._index = (finalIndex map this.index).sorted
 
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "REMOVED INSTANCES", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "REMOVED INSTANCES", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
