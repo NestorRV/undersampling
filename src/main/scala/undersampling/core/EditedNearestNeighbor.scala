@@ -5,7 +5,7 @@ import undersampling.util.Utilities.{Distances, nnRule}
 
 import scala.collection.mutable.ArrayBuffer
 
-/** Edited Nearest Neighbor rule
+/** Edited Nearest Neighbor rule. Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
   *
   * @param data data to work with
   * @param seed seed to use. If it is not provided, it will use the system time
@@ -23,8 +23,6 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
-    // Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
-
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = this.randomizedY.indices.toArray
 
