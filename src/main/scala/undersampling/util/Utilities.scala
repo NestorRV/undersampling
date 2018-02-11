@@ -1,7 +1,7 @@
 package undersampling.util
 
 import scala.collection.mutable
-import scala.math.{sqrt, pow}
+import scala.math.{pow, sqrt}
 
 /** Set of utilities functions
   *
@@ -41,8 +41,8 @@ object Utilities {
 
   /** Compute the Euclidean Distance between two points
     *
-    * @param xs            first element
-    * @param ys            second element
+    * @param xs first element
+    * @param ys second element
     * @return Euclidean Distance between xs and ys
     */
   def euclideanDistance(xs: Array[Double], ys: Array[Double]): Double = {

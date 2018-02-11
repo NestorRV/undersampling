@@ -16,9 +16,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
 
   /** Compute the Neighborhood Cleaning Rule (NCL)
     *
-    * @param file        file to store the log. If its set to None, log process would not be done
-    * @param distance    distance to use when calling the NNRule algorithm
-    * @param k           number of neighbors to use when computing k-NN rule (normally 3 neighbors)
+    * @param file     file to store the log. If its set to None, log process would not be done
+    * @param distance distance to use when calling the NNRule algorithm
+    * @param k        number of neighbors to use when computing k-NN rule (normally 3 neighbors)
     * @return Data structure with all the important information and index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
