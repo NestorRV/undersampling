@@ -1,7 +1,7 @@
 package undersampling.core
 
 import undersampling.data.Data
-import undersampling.util.Utilities.{Distances, nnRule}
+import undersampling.util.Utilities.{Distances, nanoTimeToString, nnRule}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -23,6 +23,8 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
+    // Start the time
+    val initTime: Long = System.nanoTime()
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = this.randomizedY.indices.toArray
 
@@ -42,8 +44,15 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
       }
     }
 
+    // Stop the time
+    val finishTime: Long = System.nanoTime()
+
+    this.data._resultData = (selectedElements.toArray map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (selectedElements.toArray map this.index).sorted map this.data._originalClasses
+    this.data._index = (selectedElements.toArray map this.index).sorted
+
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
@@ -56,13 +65,11 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (selectedElements.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the time
+      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
       this.logger.storeFile(file.get + "_ENN")
     }
-
-    this.data._resultData = (selectedElements.toArray map this.index).sorted map this.data._originalData
-    this.data._resultClasses = (selectedElements.toArray map this.index).sorted map this.data._originalClasses
-    this.data._index = (selectedElements.toArray map this.index).sorted
 
     this.data
   }

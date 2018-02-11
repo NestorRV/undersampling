@@ -1,6 +1,7 @@
 package undersampling.core
 
 import undersampling.data.Data
+import undersampling.util.Utilities.nanoTimeToString
 
 /** Compute a random undersampling.
   *
@@ -18,6 +19,9 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     * @return Data structure with all the important information and index of elements kept
     */
   def sample(file: Option[String] = None, numberOfElements: Int): Data = {
+    // Start the time
+    val initTime: Long = System.nanoTime()
+
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = this.randomizedY.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // It is not possible to select more elements than the available
@@ -27,23 +31,29 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     // Get the index of the reduced data
     val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
 
+    // Stop the time
+    val finishTime: Long = System.nanoTime()
+
+    this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
+    this.data._index = (finalIndex map this.index).sorted
+
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
+
       // Recount of classes
       val newCounter: Array[(Any, Int)] = (finalIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the time
+      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
       this.logger.storeFile(file.get + "_RU")
     }
-
-    this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
-    this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
-    this.data._index = (finalIndex map this.index).sorted
 
     this.data
   }

@@ -1,7 +1,7 @@
 package undersampling.core
 
 import undersampling.data.Data
-import undersampling.util.Utilities.{Distances, nnRule}
+import undersampling.util.Utilities.{Distances, nanoTimeToString, nnRule}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -23,6 +23,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
     // Note: the notation used to refers the subsets of data is the original one.
+
+    // Start the time
+    val initTime: Long = System.nanoTime()
 
     // index of the element of the interest class
     val indexC: Array[Int] = this.randomizedY.indices.toArray.filter((label: Int) => this.randomizedY(label) == this.untouchableClass)
@@ -70,8 +73,15 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     // final index is allData - (indexA1 union indexA2)
     val finalIndex: Array[Int] = this.randomizedY.indices.diff(indexA1).diff(indexA2).toArray
 
+    // Stop the time
+    val finishTime: Long = System.nanoTime()
+
+    this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
+    this.data._index = (finalIndex map this.index).sorted
+
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
@@ -81,13 +91,11 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the time
+      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
       this.logger.storeFile(file.get + "_NCL")
     }
-
-    this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
-    this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
-    this.data._index = (finalIndex map this.index).sorted
 
     this.data
   }

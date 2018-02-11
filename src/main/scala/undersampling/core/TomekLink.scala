@@ -21,10 +21,13 @@ class TomekLink(override private[undersampling] val data: Data,
     * @param distance distance to use when calling the NNRule algorithm
     * @param ratio    indicates the instances of the Tomek Links that are going to be remove. "all" will remove all instances,
     *                 "minority" will remove instances of the minority class and "not minority" will remove all the instances
-    *                 except the ones of the minority class.
+    *                 except th
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
+    // Start the time
+    val initTime: Long = System.nanoTime()
+
     // Let's compute all the distances
     val distances: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
     if (this.data._nominal.length == 0) {
@@ -65,7 +68,11 @@ class TomekLink(override private[undersampling] val data: Data,
 
     // Get the final index
     val finalIndex: Array[Int] = this.randomizedX.indices.diff(removedInstances).toArray
-    // And save the data
+
+    // Stop the time
+    val finishTime: Long = System.nanoTime()
+
+    // Save the data
     this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
     this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
     this.data._index = (finalIndex map this.index).sorted
@@ -81,6 +88,9 @@ class TomekLink(override private[undersampling] val data: Data,
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the time
+      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
+      // Save the info about the remove method used
       this.logger.addMsg("REMOVED INSTANCES", ratio)
       // Save the log
       this.logger.storeFile(file.get + "_TL")

@@ -20,10 +20,13 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     */
   def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.randomizedX.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
     }
+
+    // Start the time
+    val initTime: Long = System.nanoTime()
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(this.randomizedX.length)(0).toArray
@@ -84,6 +87,13 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     // The final data is the content of store
     val storeIndex: Array[Int] = location.zipWithIndex.filter((x: (Int, Int)) => x._1 == 1).collect { case (_, a) => a }
 
+    // Stop the time
+    val finishTime: Long = System.nanoTime()
+
+    this.data._resultData = (storeIndex map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (storeIndex map this.index).sorted map this.data._originalClasses
+    this.data._index = (storeIndex map this.index).sorted
+
     if (file.isDefined) {
       // Recount of classes
       val newCounter: Array[(Any, Int)] = (storeIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
@@ -91,13 +101,11 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / this.randomizedX.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      // Save the time
+      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
       this.logger.storeFile(file.get + "_CNN")
     }
-
-    this.data._resultData = (storeIndex map this.index).sorted map this.data._originalData
-    this.data._resultClasses = (storeIndex map this.index).sorted map this.data._originalClasses
-    this.data._index = (storeIndex map this.index).sorted
 
     this.data
   }

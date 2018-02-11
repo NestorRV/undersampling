@@ -1,5 +1,7 @@
 package undersampling.util
 
+import java.util.concurrent.TimeUnit
+
 import scala.collection.mutable
 import scala.math.{pow, sqrt}
 
@@ -99,5 +101,17 @@ object Utilities {
     } else {
       throw new Exception("Incorrect parameter: distance")
     }
+  }
+
+  /** Convert nanoseconds to minutes, seconds and milliseconds
+    *
+    * @param elapsedTime nanoseconds to be converted
+    * @return String representing the conversion
+    */
+  def nanoTimeToString(elapsedTime: Long): String = {
+    val minutes: Long = TimeUnit.NANOSECONDS.toMinutes(elapsedTime)
+    val seconds: Long = TimeUnit.NANOSECONDS.toSeconds(elapsedTime) - TimeUnit.MINUTES.toSeconds(minutes)
+    val millis: Long = TimeUnit.NANOSECONDS.toMillis(elapsedTime) - TimeUnit.MINUTES.toMillis(minutes) - TimeUnit.SECONDS.toMillis(seconds)
+    "%03d min, %03d sec %03d millis".format(minutes, seconds, millis)
   }
 }
