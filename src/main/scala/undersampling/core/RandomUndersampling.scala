@@ -5,12 +5,14 @@ import undersampling.util.Utilities._
 
 /** Compute a random undersampling.
   *
-  * @param data data to work with
-  * @param seed seed to use. If it is not provided, it will use the system time
+  * @param data          data to work with
+  * @param seed          seed to use. If it is not provided, it will use the system time
+  * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
 class RandomUndersampling(override private[undersampling] val data: Data,
-                          override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
+                          override private[undersampling] val seed: Long = System.currentTimeMillis(),
+                          override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   /** This algorithm preserve, at least, numberOfElements elements from the majority class
     *

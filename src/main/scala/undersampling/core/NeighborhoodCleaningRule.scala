@@ -7,12 +7,14 @@ import scala.collection.mutable.ArrayBuffer
 
 /** Neighborhood Cleaning Rule. Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
   *
-  * @param data data to work with
-  * @param seed seed to use. If it is not provided, it will use the system time
+  * @param data          data to work with
+  * @param seed          seed to use. If it is not provided, it will use the system time
+  * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
 class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
-                               override private[undersampling] val seed: Long = System.currentTimeMillis()) extends Algorithm(data, seed) {
+                               override private[undersampling] val seed: Long = System.currentTimeMillis(),
+                               override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   /** Compute the Neighborhood Cleaning Rule (NCL)
     *
@@ -22,7 +24,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     * @return Data structure with all the important information and index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
-    // Note: the notation used to refers the subsets of data is the original one.
+    // Note: the notation used to refers the subsets of data is the used in the original paper.
 
     // Start the time
     val initTime: Long = System.nanoTime()
@@ -32,14 +34,14 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     // index of the rest
     val indexO: Array[Int] = this.randomizedY.indices.toArray.diff(indexC.toList)
 
-    // look for noisy elements in O
+    // look for noisy elements in O. Construct a Data object to be passed to EditedNearestNeighbor
     val auxData: Data = new Data(_file = this.data._file, _comment = this.data._comment, _columnClass = this.data._columnClass,
       _nominal = this.data._nominal, _originalData = toXData(indexO map this.randomizedX), _originalClasses = indexO map this.randomizedY)
-    val enn = new EditedNearestNeighbor(auxData)
-    enn.setUntouchableClass(this.untouchableClass)
-    val resultENN: Data = enn.sample(file = None, distance = Distances.EUCLIDEAN_NOMINAL, k = k)
+    // But the untouchableClass must be the same
+    val enn = new EditedNearestNeighbor(auxData, minorityClass = this.untouchableClass)
+    val resultENN: Data = enn.sample(file = None, distance = distance, k = k)
     // noisy elements are the ones that are removed
-    val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._index.toList).toArray
+    val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._index.toList map indexO).toArray
 
     val indexA2: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     // get the size of all the classes
@@ -55,7 +57,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
       // if is misclassified
       if (label._1 != this.randomizedY(index)) {
         // get the neighbours
-        val neighbors: Array[Int] = label._2.get
+        val neighbors: Array[Int] = label._2.get map indexO
         // and their classes
         val neighborsClasses: Array[Any] = neighbors.map((n: Int) => this.randomizedY(n))
         // and check if the size of theses classes is greater or equal than 0.5 * sizeC

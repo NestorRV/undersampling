@@ -11,7 +11,7 @@ import undersampling.util.Utilities.Distances
   */
 object MainFile {
   def main(args: Array[String]): Unit = {
-    val csv: Boolean = true
+    val csv: Boolean = false
 
     if (csv) {
       val delimitedTextParse = new DelimitedTextReader
@@ -29,6 +29,10 @@ object MainFile {
       val ncl = new NeighborhoodCleaningRule(d)
       val resultNCL: Data = ncl.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/spambase_NCL.data", data = resultNCL.asInstanceOf[DelimitedTextData])
+
+      val oss = new OneSideSelection(d)
+      val resultOSS: Data = oss.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
+      writer.storeFile(file = "./input/results/spambase_OSS.data", data = resultOSS.asInstanceOf[DelimitedTextData])
 
       val ru = new RandomUndersampling(d)
       val resultRU: Data = ru.sample(file = Option("./input/logs/spambase"), numberOfElements = 10)
@@ -58,6 +62,10 @@ object MainFile {
         val ncl = new NeighborhoodCleaningRule(d)
         val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
         writer.storeFile(file = "./input/results/" + dataset + "_NCL", data = resultNCL.asInstanceOf[ArffData])
+
+        val oss = new OneSideSelection(d)
+        val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
+        writer.storeFile(file = "./input/results/" + dataset + "_OSS", data = resultOSS.asInstanceOf[ArffData])
 
         val ru = new RandomUndersampling(d)
         val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 10)
