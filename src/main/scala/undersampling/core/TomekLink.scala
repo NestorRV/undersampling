@@ -21,12 +21,9 @@ class TomekLink(override private[undersampling] val data: Data,
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
-    * @param ratio    indicates the instances of the Tomek Links that are going to be remove. "all" will remove all instances,
-    *                 "minority" will remove instances of the minority class and "not minority" will remove all the instances
-    *                 except the ones of the minority class.
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
     // Start the time
     val initTime: Long = System.nanoTime()
 
@@ -62,11 +59,8 @@ class TomekLink(override private[undersampling] val data: Data,
 
     // Instances that form a TomekLink are going to be removed
     val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).toArray.distinct
-    // but the user can choose which of them should be removed
-    val removedInstances: Array[Int] = if (ratio == "all") targetInstances else if (ratio == "minority")
-      targetInstances.zipWithIndex.collect { case (a, b) if a == this.untouchableClass => b } else if (ratio == "not minority")
-      targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b } else
-      throw new Exception("Incorrect value of ratio. Possible options: all, minority, not minority")
+    // We remove the all the instances except the associated with the untouchableClass
+    val removedInstances: Array[Int] = targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b }
 
     // Get the final index
     val finalIndex: Array[Int] = this.randomizedX.indices.diff(removedInstances).toArray
@@ -80,7 +74,7 @@ class TomekLink(override private[undersampling] val data: Data,
     this.data._index = (finalIndex map this.index).sorted
 
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "REMOVED INSTANCES", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
@@ -92,8 +86,6 @@ class TomekLink(override private[undersampling] val data: Data,
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
       // Save the time
       this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
-      // Save the info about the remove method used
-      this.logger.addMsg("REMOVED INSTANCES", ratio)
       // Save the log
       this.logger.storeFile(file.get + "_TL")
     }
