@@ -129,7 +129,8 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
     val result: Array[Array[Double]] = d.transpose.clone()
 
     for (index <- this.data._originalData.transpose.indices.diff(this.data._nominal)) {
-      result(index) = result(index).map((element: Double) => (element - minV(index)).toFloat / (maxV(index) - minV(index)))
+      val aux: Array[Double] = result(index).map((element: Double) => (element - minV(index)).toFloat / (maxV(index) - minV(index)))
+      result(index) = if (aux.count((_: Double).isNaN) == 0) aux else Array.fill[Double](aux.length)(0.0)
     }
     result.transpose
   }
