@@ -49,7 +49,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     val sizeC: Int = indexC.length
 
     // search for elements in O that misclassify elements in C
-    for (index <- indexC) {
+    for (index <- indexO) {
       // try to classify all the elements in C using O
       val label: (Any, Option[Array[Int]]) = nnRule(data = indexO map this.randomizedX, labels = indexO map this.randomizedY,
         newInstance = this.randomizedX(index), nominalValues = this.data._nominal, k = k, distance = distance, getIndex = true)
