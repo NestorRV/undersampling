@@ -3,6 +3,8 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
+import scala.util.Random
+
 /** Compute a random undersampling.
   *
   * @param data          data to work with
@@ -29,7 +31,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     // It is not possible to select more elements than the available
     val elementsToSelect: Int = if (numberOfElements > this.majorityElements) this.majorityElements else numberOfElements
     // Get the index of the elements in the majority class
-    val majorityIndex: Array[Int] = random.shuffle(this.randomizedY.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray.slice(0, elementsToSelect)
+    val majorityIndex: Array[Int] = new Random(this.seed).shuffle(this.randomizedY.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray.slice(0, elementsToSelect)
     // Get the index of the reduced data
     val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
 
