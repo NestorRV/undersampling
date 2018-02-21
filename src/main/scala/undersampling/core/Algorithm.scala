@@ -33,8 +33,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
   // We are going to use normalized values
   private[undersampling] val normalizedData: Array[Array[Double]] = normalizeData(this.x)
   // Shuffle the data to make it random
-  private[undersampling] val random: Random = new util.Random(seed)
-  private[undersampling] val index: List[Int] = this.random.shuffle(this.y.indices.toList)
+  private[undersampling] val index: List[Int] = new util.Random(seed).shuffle(this.y.indices.toList)
   private[undersampling] val randomizedX: Array[Array[Double]] = (this.index map this.normalizedData).toArray
   private[undersampling] val randomizedY: Array[Any] = (this.index map this.y).toArray
 
