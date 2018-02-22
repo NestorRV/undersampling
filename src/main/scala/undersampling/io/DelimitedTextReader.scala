@@ -3,8 +3,9 @@ package undersampling.io
 import java.io.{BufferedReader, FileInputStream, InputStreamReader}
 import java.text.ParseException
 
-import undersampling.data.{Data, DelimitedTextData}
+import undersampling.data.{Data, FileInfo}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /** Class to read delimited text files (like a CSV for example)
@@ -67,7 +68,8 @@ class DelimitedTextReader {
       }
     }
 
-    new DelimitedTextData(_file = file, _comment = "%", _columnClass = response, _nominal = readNominal.distinct.toArray, _originalData = readData.toArray,
-      _originalClasses = readClasses.toArray, _delimiter = delimiter, _missing = missing, _header = headerArray)
+    val fileInfo = new FileInfo(_file = file, _comment = "%", _columnClass = response, _delimiter = delimiter, _missing = missing, _header = headerArray, _relationName = "" ,
+      _attributes = collection.mutable.Map[Int, String](), _attributesValues = collection.mutable.Map[String, String]())
+    new Data(_nominal = readNominal.distinct.toArray, _originalData = readData.toArray, _originalClasses = readClasses.toArray, _fileInfo = fileInfo)
   }
 }

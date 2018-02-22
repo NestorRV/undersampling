@@ -1,7 +1,7 @@
 package undersampling
 
 import undersampling.core._
-import undersampling.data.{ArffData, Data, DelimitedTextData}
+import undersampling.data.Data
 import undersampling.io.{ArffReader, ArffWriter, DelimitedTextReader, DelimitedTextWriter}
 import undersampling.util.Utilities.Distances
 
@@ -20,27 +20,27 @@ object MainFile {
 
       val cnn = new CondensedNearestNeighbor(d)
       val resultCNN: Data = cnn.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
-      writer.storeFile(file = "./input/results/spambase_CNN.data", data = resultCNN.asInstanceOf[DelimitedTextData])
+      writer.storeFile(file = "./input/results/spambase_CNN.data", data = resultCNN)
 
       val enn = new EditedNearestNeighbor(d)
       val resultENN: Data = enn.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
-      writer.storeFile(file = "./input/results/spambase_ENN.data", data = resultENN.asInstanceOf[DelimitedTextData])
+      writer.storeFile(file = "./input/results/spambase_ENN.data", data = resultENN)
 
       val ncl = new NeighborhoodCleaningRule(d)
       val resultNCL: Data = ncl.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
-      writer.storeFile(file = "./input/results/spambase_NCL.data", data = resultNCL.asInstanceOf[DelimitedTextData])
+      writer.storeFile(file = "./input/results/spambase_NCL.data", data = resultNCL)
 
       val oss = new OneSideSelection(d)
       val resultOSS: Data = oss.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
-      writer.storeFile(file = "./input/results/spambase_OSS.data", data = resultOSS.asInstanceOf[DelimitedTextData])
+      writer.storeFile(file = "./input/results/spambase_OSS.data", data = resultOSS)
 
       val ru = new RandomUndersampling(d)
       val resultRU: Data = ru.sample(file = Option("./input/logs/spambase"), numberOfElements = 10)
-      writer.storeFile(file = "./input/results/spambase_RU.data", data = resultRU.asInstanceOf[DelimitedTextData])
+      writer.storeFile(file = "./input/results/spambase_RU.data", data = resultRU)
 
       val tl = new TomekLink(d)
       val resultTL: Data = tl.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
-      writer.storeFile(file = "./input/results/spambase_TL.data", data = resultTL.asInstanceOf[DelimitedTextData])
+      writer.storeFile(file = "./input/results/spambase_TL.data", data = resultTL)
     }
     else {
       val data = List("contact-lenses.arff", "diabetes.arff", "iris.arff", "vote.arff", "weather.nominal.arff")
@@ -53,27 +53,27 @@ object MainFile {
 
         val cnn = new CondensedNearestNeighbor(d)
         val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
-        writer.storeFile(file = "./input/results/" + dataset + "_CNN", data = resultCNN.asInstanceOf[ArffData])
+        writer.storeFile(file = "./input/results/" + dataset + "_CNN", data = resultCNN)
 
         val enn = new EditedNearestNeighbor(d)
         val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
-        writer.storeFile(file = "./input/results/" + dataset + "_ENN", data = resultENN.asInstanceOf[ArffData])
+        writer.storeFile(file = "./input/results/" + dataset + "_ENN", data = resultENN)
 
         val ncl = new NeighborhoodCleaningRule(d)
         val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
-        writer.storeFile(file = "./input/results/" + dataset + "_NCL", data = resultNCL.asInstanceOf[ArffData])
+        writer.storeFile(file = "./input/results/" + dataset + "_NCL", data = resultNCL)
 
         val oss = new OneSideSelection(d)
         val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
-        writer.storeFile(file = "./input/results/" + dataset + "_OSS", data = resultOSS.asInstanceOf[ArffData])
+        writer.storeFile(file = "./input/results/" + dataset + "_OSS", data = resultOSS)
 
         val ru = new RandomUndersampling(d)
         val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 10)
-        writer.storeFile(file = "./input/results/" + dataset + "_RU", data = resultRU.asInstanceOf[ArffData])
+        writer.storeFile(file = "./input/results/" + dataset + "_RU", data = resultRU)
 
         val tl = new TomekLink(d)
         val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
-        writer.storeFile(file = "./input/results/" + dataset + "_TL", data = resultTL.asInstanceOf[ArffData])
+        writer.storeFile(file = "./input/results/" + dataset + "_TL", data = resultTL)
       }
     }
   }

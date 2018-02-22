@@ -2,7 +2,7 @@ package undersampling.io
 
 import java.io.{File, PrintWriter}
 
-import undersampling.data.ArffData
+import undersampling.data.Data
 
 import scala.collection.immutable.ListMap
 
@@ -16,14 +16,14 @@ class ArffWriter {
     * @param file filename where to store the logs
     * @param data data to save to the file
     */
-  def storeFile(file: String, data: ArffData): Unit = {
+  def storeFile(file: String, data: Data): Unit = {
     val pr = new PrintWriter(new File(file))
-    pr.write("@relation %s\n".format(data._relationName))
+    pr.write("@relation %s\n".format(data._fileInfo._relationName))
 
-    val orderedAttributes: Map[Int, String] = ListMap(data._attributes.toSeq.sortBy((_: (Int, String))._1): _*)
+    val orderedAttributes: Map[Int, String] = ListMap(data._fileInfo._attributes.toSeq.sortBy((_: (Int, String))._1): _*)
 
     for (attribute <- orderedAttributes) {
-      pr.write("@attribute %s %s\n".format(attribute._2, data._attributesValues(attribute._2)))
+      pr.write("@attribute %s %s\n".format(attribute._2, data._fileInfo._attributesValues(attribute._2)))
     }
 
     pr.write("@data\n")

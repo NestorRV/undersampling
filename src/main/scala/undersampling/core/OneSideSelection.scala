@@ -61,8 +61,8 @@ class OneSideSelection(override private[undersampling] val data: Data,
     val finalC: Array[Int] = (misclassified ++ c).distinct
 
     // Construct a Data object to be passed to TomekLink
-    val auxData: Data = new Data(_file = this.data._file, _comment = this.data._comment, _columnClass = this.data._columnClass,
-      _nominal = this.data._nominal, _originalData = toXData(finalC map dataToWorkWith), _originalClasses = finalC map classesToWorkWith)
+    val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(finalC map dataToWorkWith),
+      _originalClasses = finalC map classesToWorkWith, _fileInfo = this.data._fileInfo)
     // But the untouchableClass must be the same
     val tl = new TomekLink(auxData, minorityClass = this.untouchableClass)
     val resultTL: Data = tl.sample(file = None, distance = distance)

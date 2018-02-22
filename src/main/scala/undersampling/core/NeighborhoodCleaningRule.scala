@@ -43,8 +43,8 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     val indexO: Array[Int] = classesToWorkWith.indices.toArray.diff(indexC.toList)
 
     // look for noisy elements in O. Construct a Data object to be passed to EditedNearestNeighbor
-    val auxData: Data = new Data(_file = this.data._file, _comment = this.data._comment, _columnClass = this.data._columnClass,
-      _nominal = this.data._nominal, _originalData = toXData(indexO map dataToWorkWith), _originalClasses = indexO map classesToWorkWith)
+    val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(indexO map dataToWorkWith),
+      _originalClasses = indexO map classesToWorkWith, _fileInfo = this.data._fileInfo)
     // But the untouchableClass must be the same
     val enn = new EditedNearestNeighbor(auxData, minorityClass = this.untouchableClass)
     val resultENN: Data = enn.sample(file = None, distance = distance, k = k)

@@ -3,7 +3,7 @@ package undersampling.io
 import java.io.{BufferedReader, FileInputStream, InputStreamReader}
 import java.text.ParseException
 
-import undersampling.data.{ArffData, Data}
+import undersampling.data.{Data, FileInfo}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -125,7 +125,8 @@ class ArffReader {
       finalData += r.toArray
     }
 
-    new ArffData(_file = file, _comment = "%", _columnClass = response, _nominal = readNominal.distinct.toArray, _originalData = finalData.toArray,
-      _originalClasses = readClasses.toArray, _relationName = relationName, _attributes = attributes, _attributesValues = attributesValues)
+    val fileInfo = new FileInfo(_file = file, _comment = "%", _columnClass = response, _delimiter = "", _missing = "?", _header = new Array[String](0),
+      _relationName = relationName, _attributes = attributes, _attributesValues = attributesValues)
+    new Data(_nominal = readNominal.distinct.toArray, _originalData = finalData.toArray, _originalClasses = readClasses.toArray, _fileInfo = fileInfo)
   }
 }
