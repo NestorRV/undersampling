@@ -24,31 +24,39 @@ class TomekLink(override private[undersampling] val data: Data,
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
+    // Use normalized data, but HVDM uses a special normalization
+    // Use randomized data 
+    val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.HVDM)
+      (this.index map this.hvdmNormalization(this.x)).toArray else
+      (this.index map this.zeroOneNormalization(this.x)).toArray
+    // and randomized classes to match the randomized data
+    val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
+    
     // Start the time
     val initTime: Long = System.nanoTime()
 
     // Let's compute all the distances
     val distances: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
     if (this.data._nominal.length == 0) {
-      for (instance <- this.randomizedX) {
-        distances += this.randomizedX.map((ins: Array[Double]) => euclideanDistance(instance, ins))
+      for (instance <- dataToWorkWith) {
+        distances += dataToWorkWith.map((ins: Array[Double]) => euclideanDistance(instance, ins))
       }
     } else {
       if (distance == Distances.EUCLIDEAN_NOMINAL) {
-        for (instance <- this.randomizedX) {
-          distances += this.randomizedX.map((ins: Array[Double]) => euclideanNominalDistance(instance, ins, this.data._nominal))
+        for (instance <- dataToWorkWith) {
+          distances += dataToWorkWith.map((ins: Array[Double]) => euclideanNominalDistance(instance, ins, this.data._nominal))
         }
       }
     }
 
     // Take the index of the elements that have a different class
-    val candidates: mutable.Map[Any, Array[Int]] = collection.mutable.Map[Any, Array[Int]]()
-    for (c <- this.randomizedY.distinct) {
-      candidates += (c -> this.randomizedY.zipWithIndex.collect { case (a, b) if a != c => b })
+    val candidates: mutable.Map[Any, Array[Int]] = mutable.Map[Any, Array[Int]]()
+    for (c <- classesToWorkWith.distinct) {
+      candidates += (c -> classesToWorkWith.zipWithIndex.collect { case (a, b) if a != c => b })
     }
 
     // Look for the nearest neighbour in the rest of the classes
-    val nearestNeighbor: Array[Int] = distances.zipWithIndex.map((row: (Array[Double], Int)) => row._1.indexOf((candidates(this.randomizedY(row._2)) map row._1).min)).toArray
+    val nearestNeighbor: Array[Int] = distances.zipWithIndex.map((row: (Array[Double], Int)) => row._1.indexOf((candidates(classesToWorkWith(row._2)) map row._1).min)).toArray
     val tomekLinks: ArrayBuffer[(Int, Int)] = new ArrayBuffer[(Int, Int)](0)
     // For each instance, I
     for (pair <- nearestNeighbor.zipWithIndex) {
@@ -63,7 +71,7 @@ class TomekLink(override private[undersampling] val data: Data,
     val removedInstances: Array[Int] = targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b }
 
     // Get the final index
-    val finalIndex: Array[Int] = this.randomizedX.indices.diff(removedInstances).toArray
+    val finalIndex: Array[Int] = dataToWorkWith.indices.diff(removedInstances).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
@@ -75,13 +83,13 @@ class TomekLink(override private[undersampling] val data: Data,
 
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (finalIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Array[(Any, Int)] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
       // Save the time

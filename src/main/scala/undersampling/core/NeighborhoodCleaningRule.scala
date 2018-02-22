@@ -26,40 +26,48 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
+    // Use normalized data, but HVDM uses a special normalization
+    // Use randomized data 
+    val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.HVDM)
+      (this.index map this.hvdmNormalization(this.x)).toArray else
+      (this.index map this.zeroOneNormalization(this.x)).toArray
+    // and randomized classes to match the randomized data
+    val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
+
     // Start the time
     val initTime: Long = System.nanoTime()
 
     // index of the element of the interest class
-    val indexC: Array[Int] = this.randomizedY.indices.toArray.filter((label: Int) => this.randomizedY(label) == this.untouchableClass)
+    val indexC: Array[Int] = classesToWorkWith.indices.toArray.filter((label: Int) => classesToWorkWith(label) == this.untouchableClass)
     // index of the rest
-    val indexO: Array[Int] = this.randomizedY.indices.toArray.diff(indexC.toList)
+    val indexO: Array[Int] = classesToWorkWith.indices.toArray.diff(indexC.toList)
 
     // look for noisy elements in O. Construct a Data object to be passed to EditedNearestNeighbor
     val auxData: Data = new Data(_file = this.data._file, _comment = this.data._comment, _columnClass = this.data._columnClass,
-      _nominal = this.data._nominal, _originalData = toXData(indexO map this.randomizedX), _originalClasses = indexO map this.randomizedY)
+      _nominal = this.data._nominal, _originalData = toXData(indexO map dataToWorkWith), _originalClasses = indexO map classesToWorkWith)
     // But the untouchableClass must be the same
     val enn = new EditedNearestNeighbor(auxData, minorityClass = this.untouchableClass)
     val resultENN: Data = enn.sample(file = None, distance = distance, k = k)
     // noisy elements are the ones that are removed
-    val indexA1: Array[Int] = this.randomizedY.indices.toList.diff(resultENN._index.toList map indexO).toArray
+    val indexA1: Array[Int] = classesToWorkWith.indices.toList.diff(resultENN._index.toList map indexO).toArray
 
     val indexA2: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     // get the size of all the classes
-    val sizeOfClasses: Map[Any, Int] = this.randomizedY.groupBy(identity).mapValues((_: Array[Any]).length)
+    val sizeOfClasses: Map[Any, Int] = classesToWorkWith.groupBy(identity).mapValues((_: Array[Any]).length)
     val sizeC: Int = indexC.length
 
     // search for elements in O that misclassify elements in C
     for (index <- indexO) {
       // try to classify all the elements in C using O
-      val label: (Any, Option[Array[Int]]) = nnRule(data = indexO map this.randomizedX, labels = indexO map this.randomizedY,
-        newInstance = this.randomizedX(index), nominalValues = this.data._nominal, k = k, distance = distance, getIndex = true)
+      val label: (Any, Option[Array[Int]]) = nnRule(data = indexO map dataToWorkWith, labels = indexO map classesToWorkWith,
+        newInstance = dataToWorkWith(index), nominalValues = this.data._nominal, k = k, distance = distance, getIndex = true)
 
       // if is misclassified
-      if (label._1 != this.randomizedY(index)) {
+      if (label._1 != classesToWorkWith(index)) {
         // get the neighbours
         val neighbors: Array[Int] = label._2.get map indexO
         // and their classes
-        val neighborsClasses: Array[Any] = neighbors.map((n: Int) => this.randomizedY(n))
+        val neighborsClasses: Array[Any] = neighbors.map((n: Int) => classesToWorkWith(n))
         // and check if the size of theses classes is greater or equal than 0.5 * sizeC
         val shouldBeAdded: Array[Boolean] = neighborsClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
 
@@ -73,7 +81,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     }
 
     // final index is allData - (indexA1 union indexA2)
-    val finalIndex: Array[Int] = this.randomizedY.indices.diff(indexA1).diff(indexA2).toArray
+    val finalIndex: Array[Int] = classesToWorkWith.indices.diff(indexA1).diff(indexA2).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
@@ -84,13 +92,13 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
 
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (finalIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Array[(Any, Int)] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
       // Save the time

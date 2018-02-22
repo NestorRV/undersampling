@@ -16,10 +16,13 @@ object Utilities {
     * EUCLIDEAN_NOMINAL: Euclidean Distance for numeric values plus Nominal Distance (minimum distance, 0,
     * if the two elements are equal, maximum distance, 1, otherwise) for nominal values.
     *
+    * HVDM: Proposed in "Improved Heterogeneous Distance Functions" by "D. Randall Wilson and Tony R. Martinez"
+    *
     */
   object Distances extends Enumeration {
     type Distance = Value
     val EUCLIDEAN_NOMINAL: Distances.Value = Value
+    val HVDM: Distances.Value = Value
   }
 
   /** Compute the mode of an array

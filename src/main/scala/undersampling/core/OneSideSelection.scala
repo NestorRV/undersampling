@@ -30,36 +30,44 @@ class OneSideSelection(override private[undersampling] val data: Data,
   def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
+    // Use normalized data, but HVDM uses a special normalization
+    // Use randomized data 
+    val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.HVDM)
+      (this.index map this.hvdmNormalization(this.x)).toArray else
+      (this.index map this.zeroOneNormalization(this.x)).toArray
+    // and randomized classes to match the randomized data
+    val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
+
     // Start the time
     val initTime: Long = System.nanoTime()
 
     // Let's save all the positive instances
-    val positives: Array[Int] = this.randomizedY.zipWithIndex.filter((pair: (Any, Int)) => pair._1 == this.untouchableClass).map((_: (Any, Int))._2)
+    val positives: Array[Int] = classesToWorkWith.zipWithIndex.filter((pair: (Any, Int)) => pair._1 == this.untouchableClass).map((_: (Any, Int))._2)
     // Choose a random negative one
-    val randomElement: Int = this.randomizedY.indices.diff(positives)(Random.nextInt(this.randomizedY.indices.diff(positives).size))
+    val randomElement: Int = classesToWorkWith.indices.diff(positives)(Random.nextInt(classesToWorkWith.indices.diff(positives).size))
     // c is the union of positives with the random element
     val c: Array[Int] = positives ++ Array(randomElement)
 
     val labels: ArrayBuffer[Any] = new ArrayBuffer[Any]()
-    val dataC: Array[Array[Double]] = c map this.randomizedX
-    val labelsC: Array[Any] = c map this.randomizedY
+    val dataC: Array[Array[Double]] = c map dataToWorkWith
+    val labelsC: Array[Any] = c map classesToWorkWith
     // Let's classify S with the content of C
-    for (instance <- this.randomizedX) {
+    for (instance <- dataToWorkWith) {
       labels += nnRule(data = dataC, labels = labelsC, newInstance = instance, nominalValues = this.data._nominal, k = 1, distance = distance)._1
     }
     // Look for the misclassified instances
-    val misclassified: Array[Int] = (labels zip this.randomizedY).zipWithIndex.filter((pair: ((Any, Any), Int)) => pair._1._1 != pair._1._2).map((_: ((Any, Any), Int))._2).toArray
+    val misclassified: Array[Int] = (labels zip classesToWorkWith).zipWithIndex.filter((pair: ((Any, Any), Int)) => pair._1._1 != pair._1._2).map((_: ((Any, Any), Int))._2).toArray
     // Add the misclassified instances to C
     val finalC: Array[Int] = (misclassified ++ c).distinct
 
     // Construct a Data object to be passed to TomekLink
     val auxData: Data = new Data(_file = this.data._file, _comment = this.data._comment, _columnClass = this.data._columnClass,
-      _nominal = this.data._nominal, _originalData = toXData(finalC map this.randomizedX), _originalClasses = finalC map this.randomizedY)
+      _nominal = this.data._nominal, _originalData = toXData(finalC map dataToWorkWith), _originalClasses = finalC map classesToWorkWith)
     // But the untouchableClass must be the same
     val tl = new TomekLink(auxData, minorityClass = this.untouchableClass)
     val resultTL: Data = tl.sample(file = None, distance = distance)
     // The final index is the result of applying TomekLink to the content of C
-    val finalIndex: Array[Int] = this.randomizedY.indices.toList.diff(resultTL._index.toList map finalC).toArray
+    val finalIndex: Array[Int] = classesToWorkWith.indices.toList.diff(resultTL._index.toList map finalC).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
@@ -70,13 +78,13 @@ class OneSideSelection(override private[undersampling] val data: Data,
 
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (finalIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Array[(Any, Int)] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
       // Save the time

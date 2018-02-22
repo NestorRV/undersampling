@@ -23,15 +23,20 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     * @return Data structure with all the important information and index of elements kept
     */
   def sample(file: Option[String] = None, numberOfElements: Int): Data = {
+    // Use randomized data 
+    val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
+    // and randomized classes to match the randomized data
+    val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
+    
     // Start the time
     val initTime: Long = System.nanoTime()
 
     // The elements in the minority class (untouchableClass) are maintained
-    val minorityIndex: Array[Int] = this.randomizedY.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
-    // It is not possible to select more elements than the available
-    val elementsToSelect: Int = if (numberOfElements > this.majorityElements) this.majorityElements else numberOfElements
+    val minorityIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
+    // It is not possible to select more elements than the available (all the elements except the ones associated with the untouchableClass)
+    val elementsToSelect: Int = if (numberOfElements > this.counter.tail.map((_: (Any, Int))._2).sum) this.counter.tail.map((_: (Any, Int))._2).sum else numberOfElements
     // Get the index of the elements in the majority class
-    val majorityIndex: Array[Int] = new Random(this.seed).shuffle(this.randomizedY.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray.slice(0, elementsToSelect)
+    val majorityIndex: Array[Int] = new Random(this.seed).shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray.slice(0, elementsToSelect)
     // Get the index of the reduced data
     val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
 
@@ -44,13 +49,13 @@ class RandomUndersampling(override private[undersampling] val data: Data,
 
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(this.normalizedData.length))
+      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (finalIndex map this.randomizedY).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Array[(Any, Int)] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / this.randomizedX.length) * 100).toString)
+      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
       // Save the time
