@@ -22,32 +22,32 @@ object MainFile {
 
       val cnn = new CondensedNearestNeighbor(d)
       println("CondensedNearestNeighbor")
-      val resultCNN: Data = cnn.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
+      val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
       val enn = new EditedNearestNeighbor(d)
       println("EditedNearestNeighbor")
-      val resultENN: Data = enn.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
+      val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
       val ncl = new NeighborhoodCleaningRule(d)
       println("NeighborhoodCleaningRule")
-      val resultNCL: Data = ncl.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
+      val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
 
       val oss = new OneSideSelection(d)
       println("OneSideSelection")
-      val resultOSS: Data = oss.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
+      val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
 
       val ru = new RandomUndersampling(d)
       println("RandomUndersampling")
-      val resultRU: Data = ru.sample(file = Option("./input/logs/spambase"), numberOfElements = 100)
+      val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
       writer.storeFile(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
       val tl = new TomekLink(d)
       println("TomekLink")
-      val resultTL: Data = tl.sample(file = Option("./input/logs/spambase"), distance = Distances.EUCLIDEAN_NOMINAL)
+      val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.storeFile(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
     }
   
