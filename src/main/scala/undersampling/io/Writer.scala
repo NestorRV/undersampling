@@ -6,17 +6,17 @@ import undersampling.data.Data
 
 import scala.collection.immutable.ListMap
 
-/** Class to store delimited text files (like a CSV for example)
+/** Class write data files
   *
   * @author Néstor Rodríguez Vico
   */
-class ArffWriter {
+class Writer {
   /** Store data into a delimited text file
     *
-    * @param file filename where to store the logs
+    * @param file filename where to store the data
     * @param data data to save to the file
     */
-  def storeFile(file: String, data: Data): Unit = {
+  def writeArff(file: String, data: Data): Unit = {
     val pr = new PrintWriter(new File(file))
     pr.write("@relation %s\n".format(data._fileInfo._relationName))
 
@@ -36,6 +36,29 @@ class ArffWriter {
       }
 
       pr.write(newRow.mkString(",") + "," + row._2 + "\n")
+    }
+
+    pr.close()
+  }
+
+  /** Store data into a delimited text file
+    *
+    * @param file filename where to store the data
+    * @param data data to save to the file
+    */
+  def writeDelimitedText(file: String, data: Data): Unit = {
+    val pr = new PrintWriter(new File(file))
+    if (data._fileInfo._header != null)
+      pr.write(data._fileInfo._header.mkString(data._fileInfo._delimiter) + "\n")
+
+    for (row <- data._resultData zip data._resultClasses) {
+      val naIndex: Array[Int] = row._1.zipWithIndex.filter((_: (Any, Int))._1 == "undersampling_NA").map((_: (Any, Int))._2)
+      val newRow: Array[Any] = row._1.clone()
+      for (index <- naIndex) {
+        newRow(index) = data._fileInfo._missing
+      }
+
+      pr.write(newRow.mkString(data._fileInfo._delimiter) + "," + row._2 + "\n")
     }
 
     pr.close()
