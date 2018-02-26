@@ -35,19 +35,8 @@ class TomekLink(override private[undersampling] val data: Data,
     // Start the time
     val initTime: Long = System.nanoTime()
 
-    // Let's compute all the distances
-    val distances: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
-    if (this.data._nominal.length == 0) {
-      for (instance <- dataToWorkWith) {
-        distances += dataToWorkWith.map((ins: Array[Double]) => euclideanDistance(instance, ins))
-      }
-    } else {
-      if (distance == Distances.EUCLIDEAN_NOMINAL) {
-        for (instance <- dataToWorkWith) {
-          distances += dataToWorkWith.map((ins: Array[Double]) => euclideanNominalDistance(instance, ins, this.data._nominal))
-        }
-      }
-    }
+    // Distances among the elements
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
 
     // Take the index of the elements that have a different class
     val candidates: mutable.Map[Any, Array[Int]] = mutable.Map[Any, Array[Int]]()

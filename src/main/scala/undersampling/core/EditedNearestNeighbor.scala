@@ -35,14 +35,16 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
 
     // Start the time
     val initTime: Long = System.nanoTime()
+
+    // Distances among the elements
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
+
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = classesToWorkWith.indices.toArray
 
     for (index <- indices) {
       // indices.diff(List(index)) is to exclude the actual element -> LeaveOneOut
-      val label: (Any, Option[Array[Int]]) = nnRule(data = indices.diff(List(index)) map dataToWorkWith,
-        labels = indices.diff(List(index)) map classesToWorkWith, newInstance = dataToWorkWith(index),
-        nominalValues = this.data._nominal, k = k, distance = distance)
+      val label: (Any, Array[Int]) = nnRule(distances = distances(index), selectedElements = indices.diff(List(index)), labels = classesToWorkWith, k = k)
 
       // if the label matches (it is well classified)
       if (label._1 == classesToWorkWith(index)) {

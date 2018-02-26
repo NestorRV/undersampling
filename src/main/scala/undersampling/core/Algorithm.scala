@@ -144,7 +144,6 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
     */
   def imbalancedRatio(counter: Array[(Any, Int)]): Float = {
     val minorityElements: Int = counter.head._2
-    val majorityElements: Int = counter.tail.map((_: (Any, Int))._2).sum
 
     (counter.map((_: (Any, Int))._2).sum.toFloat - minorityElements) / minorityElements
   }

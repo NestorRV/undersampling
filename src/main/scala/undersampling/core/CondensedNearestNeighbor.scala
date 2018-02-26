@@ -29,7 +29,6 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
 
-
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
@@ -38,6 +37,9 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
 
     // Start the time
     val initTime: Long = System.nanoTime()
+
+    // Distances among the elements
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(dataToWorkWith.length)(0).toArray
@@ -50,8 +52,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     for (element <- dataToWorkWith.zipWithIndex.tail) {
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-      val label: (Any, Option[Array[Int]]) = nnRule(data = index map dataToWorkWith, labels = index map classesToWorkWith,
-        newInstance = element._1, nominalValues = this.data._nominal, k = 1, distance = distance)
+      val label: (Any, Array[Int]) = nnRule(distances = distances(element._2), selectedElements = index, labels = classesToWorkWith, k = 1)
       // If it is misclassified or is a element of the untouchable class
       if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {
         // it is added to store
@@ -76,8 +77,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       // Now, instead of iterating x, we iterate grabbag
       for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
-        val label: (Any, Option[Array[Int]]) = nnRule(data = index map dataToWorkWith, labels = index map classesToWorkWith,
-          newInstance = dataToWorkWith(element._2), nominalValues = this.data._nominal, k = 1, distance = distance)
+        val label: (Any, Array[Int]) = nnRule(distances = distances(element._2), selectedElements = index, labels = classesToWorkWith, k = 1)
         // If it is no well classified or is a element of the minority class
         if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {
           // it is added to store

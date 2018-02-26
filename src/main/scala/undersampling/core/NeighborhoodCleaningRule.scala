@@ -37,6 +37,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     // Start the time
     val initTime: Long = System.nanoTime()
 
+    // Distances among the elements
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
+
     // index of the element of the interest class
     val indexC: Array[Int] = classesToWorkWith.indices.toArray.filter((label: Int) => classesToWorkWith(label) == this.untouchableClass)
     // index of the rest
@@ -59,13 +62,12 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     // search for elements in O that misclassify elements in C
     for (index <- indexO) {
       // try to classify all the elements in C using O
-      val label: (Any, Option[Array[Int]]) = nnRule(data = indexO map dataToWorkWith, labels = indexO map classesToWorkWith,
-        newInstance = dataToWorkWith(index), nominalValues = this.data._nominal, k = k, distance = distance, getIndex = true)
+      val label: (Any, Array[Int]) = nnRule(distances = distances(index), selectedElements = indexO.diff(List(index)), labels = classesToWorkWith, k = k)
 
       // if is misclassified
       if (label._1 != classesToWorkWith(index)) {
         // get the neighbours
-        val neighbors: Array[Int] = label._2.get map indexO
+        val neighbors: Array[Int] = label._2 map indexO
         // and their classes
         val neighborsClasses: Array[Any] = neighbors.map((n: Int) => classesToWorkWith(n))
         // and check if the size of theses classes is greater or equal than 0.5 * sizeC

@@ -41,6 +41,9 @@ class OneSideSelection(override private[undersampling] val data: Data,
     // Start the time
     val initTime: Long = System.nanoTime()
 
+    // Distances among the elements
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
+
     // Let's save all the positive instances
     val positives: Array[Int] = classesToWorkWith.zipWithIndex.filter((pair: (Any, Int)) => pair._1 == this.untouchableClass).map((_: (Any, Int))._2)
     // Choose a random negative one
@@ -49,11 +52,9 @@ class OneSideSelection(override private[undersampling] val data: Data,
     val c: Array[Int] = positives ++ Array(randomElement)
 
     val labels: ArrayBuffer[Any] = new ArrayBuffer[Any]()
-    val dataC: Array[Array[Double]] = c map dataToWorkWith
-    val labelsC: Array[Any] = c map classesToWorkWith
     // Let's classify S with the content of C
-    for (instance <- dataToWorkWith) {
-      labels += nnRule(data = dataC, labels = labelsC, newInstance = instance, nominalValues = this.data._nominal, k = 1, distance = distance)._1
+    for (index <- dataToWorkWith.indices) {
+      labels += nnRule(distances = distances(index), selectedElements = c.diff(List(index)), labels = classesToWorkWith, k = 1)._1
     }
     // Look for the misclassified instances
     val misclassified: Array[Int] = (labels zip classesToWorkWith).zipWithIndex.filter((pair: ((Any, Any), Int)) => pair._1._1 != pair._1._2).map((_: ((Any, Any), Int))._2).toArray

@@ -11,8 +11,8 @@ import undersampling.util.Utilities.Distances
   */
 object MainFile {
   def main(args: Array[String]): Unit = {
-    val delimitedTextData = List("abalone.data", "poker-hand-testing.data", "winequality-red.csv", "car.data", "spambase.data", "winequality-white.csv")
-    val arffData = List("airlines.arff", "gisette.arff", "supermarket.arff", "amazon.arff", "madelon.arff")
+    val delimitedTextData = List("abalone.data", "car.data", "spambase.data", "wdbc.csv")
+    val arffData = List("madelon.arff")
     val reader = new Reader
     val writer: Writer = new Writer
 
@@ -20,67 +20,67 @@ object MainFile {
       println(dataset)
       val d: Data = reader.readDelimitedText(file = "./input/delimited_text/" + dataset, comment = "#", delimiter = ",", missing = "", columnClass = -1, header = false)
 
-      val cnn = new CondensedNearestNeighbor(d)
+      val cnn = new CondensedNearestNeighbor(d, seed = 0L)
       println("CondensedNearestNeighbor")
       val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
-      val enn = new EditedNearestNeighbor(d)
+      val enn = new EditedNearestNeighbor(d, seed = 0L)
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
-      val ncl = new NeighborhoodCleaningRule(d)
+      val ncl = new NeighborhoodCleaningRule(d, seed = 0L)
       println("NeighborhoodCleaningRule")
       val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
 
-      val oss = new OneSideSelection(d)
+      val oss = new OneSideSelection(d, seed = 0L)
       println("OneSideSelection")
       val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
 
-      val ru = new RandomUndersampling(d)
+      val ru = new RandomUndersampling(d, seed = 0L)
       println("RandomUndersampling")
       val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
-      val tl = new TomekLink(d)
+      val tl = new TomekLink(d, seed = 0L)
       println("TomekLink")
       val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
     }
-  
+
     for (dataset <- arffData) {
       println(dataset)
       val d: Data = reader.readArff(file = "./input/arff/" + dataset)
 
-      val cnn = new CondensedNearestNeighbor(d)
+      val cnn = new CondensedNearestNeighbor(d, seed = 0L)
       println("CondensedNearestNeighbor")
       val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeArff(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
-      val enn = new EditedNearestNeighbor(d)
+      val enn = new EditedNearestNeighbor(d, seed = 0L)
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeArff(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
-      val ncl = new NeighborhoodCleaningRule(d)
+      val ncl = new NeighborhoodCleaningRule(d, seed = 0L)
       println("NeighborhoodCleaningRule")
       val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeArff(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
 
-      val oss = new OneSideSelection(d)
+      val oss = new OneSideSelection(d, seed = 0L)
       println("OneSideSelection")
       val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeArff(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
 
-      val ru = new RandomUndersampling(d)
+      val ru = new RandomUndersampling(d, seed = 0L)
       println("RandomUndersampling")
       val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
       writer.writeArff(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
-      val tl = new TomekLink(d)
+      val tl = new TomekLink(d, seed = 0L)
       println("TomekLink")
       val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN_NOMINAL)
       writer.writeArff(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
