@@ -27,7 +27,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
-    
+
     // Start the time
     val initTime: Long = System.nanoTime()
 

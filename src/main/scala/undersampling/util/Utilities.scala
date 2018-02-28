@@ -84,7 +84,7 @@ object Utilities {
     *
     * @param data     elements to compute the distance
     * @param distance distance to use
-    * @param nominal  array indicating the nominale elements, if present
+    * @param nominal  array indicating the nominal elements, if present
     * @return matrix array with the distances
     */
   def computeDistances(data: Array[Array[Double]], distance: Distances.Distance, nominal: Array[Int]): Array[Array[Double]] = {

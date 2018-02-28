@@ -2,7 +2,6 @@ package undersampling.core
 
 import undersampling.data.Data
 import undersampling.io.Logger
-import undersampling.util.Utilities._
 
 /** Base class to all the algorithms
   *

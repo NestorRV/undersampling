@@ -187,7 +187,7 @@ class Reader {
       }
     }
 
-    val fileInfo = new FileInfo(_file = file, _comment = "%", _columnClass = response, _delimiter = delimiter, _missing = missing, _header = headerArray, _relationName = "" ,
+    val fileInfo = new FileInfo(_file = file, _comment = "%", _columnClass = response, _delimiter = delimiter, _missing = missing, _header = headerArray, _relationName = "",
       _attributes = collection.mutable.Map[Int, String](), _attributesValues = collection.mutable.Map[String, String]())
     val data: Data = new Data(_nominal = readNominal.distinct.toArray, _originalData = readData.toArray, _originalClasses = readClasses.toArray, _fileInfo = fileInfo)
     data._processedData = processData(data)

@@ -31,7 +31,7 @@ class TomekLink(override private[undersampling] val data: Data,
       (this.index map this.x).toArray
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
-    
+
     // Start the time
     val initTime: Long = System.nanoTime()
 
@@ -45,7 +45,7 @@ class TomekLink(override private[undersampling] val data: Data,
     }
 
     // Look for the nearest neighbour in the rest of the classes
-    val nearestNeighbor: Array[Int] = distances.zipWithIndex.map((row: (Array[Double], Int)) => row._1.indexOf((candidates(classesToWorkWith(row._2)) map row._1).min)).toArray
+    val nearestNeighbor: Array[Int] = distances.zipWithIndex.map((row: (Array[Double], Int)) => row._1.indexOf((candidates(classesToWorkWith(row._2)) map row._1).min))
     val tomekLinks: ArrayBuffer[(Int, Int)] = new ArrayBuffer[(Int, Int)](0)
     // For each instance, I
     for (pair <- nearestNeighbor.zipWithIndex) {
