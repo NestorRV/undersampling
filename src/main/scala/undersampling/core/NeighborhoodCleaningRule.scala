@@ -28,9 +28,9 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
 
     // Use normalized data, but HVDM uses a special normalization
     // Use randomized data 
-    val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.HVDM)
-      (this.index map this.hvdmNormalization(this.x)).toArray else
-      (this.index map this.zeroOneNormalization(this.x)).toArray
+    val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
+      (this.index map zeroOneNormalization(this.data)).toArray else
+      (this.index map this.x).toArray
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
 

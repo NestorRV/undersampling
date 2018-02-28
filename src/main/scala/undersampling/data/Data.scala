@@ -10,6 +10,8 @@ package undersampling.data
 class Data private[undersampling](private[undersampling] val _nominal: Array[Int], private[undersampling] val _originalData: Array[Array[Any]],
                                   private[undersampling] val _originalClasses: Array[Any], private[undersampling] val _fileInfo: FileInfo) {
 
+  //data without NA values and with nominal values transformed to numeric values
+  private[undersampling] var _processedData: Array[Array[Double]] = _
   //data obtained after applying an algorithm
   private[undersampling] var _resultData: Array[Array[Any]] = _
   // classes obtained after applying an algorithm
