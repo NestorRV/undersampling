@@ -67,7 +67,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
       // if is misclassified
       if (label._1 != classesToWorkWith(index)) {
         // get the neighbours
-        val neighbors: Array[Int] = label._2 map indexO
+        val neighbors: Array[Int] = label._2
         // and their classes
         val neighborsClasses: Array[Any] = neighbors.map((n: Int) => classesToWorkWith(n))
         // and check if the size of theses classes is greater or equal than 0.5 * sizeC
