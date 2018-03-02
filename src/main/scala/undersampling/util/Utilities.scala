@@ -6,7 +6,7 @@ import undersampling.data.Data
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.math.{pow, sqrt}
+import scala.math.{abs, pow, sqrt}
 
 /** Set of utilities functions
   *
@@ -69,6 +69,16 @@ object Utilities {
       if (nominalValues.contains(element._2)) if (element._1._2 == element._1._1) 0 else 1 else pow(element._1._2 - element._1._1, 2)).sum)
   }
 
+  /** Compute the standard deviation for an array
+    *
+    * @param xs array to be used
+    * @return standard deviation of xs
+    */
+  def standardDeviation(xs: Array[Double]): Double = {
+    val mean: Double = xs.sum / xs.length
+    sqrt(xs.map((a: Double) => math.pow(a - mean, 2)).sum / xs.length)
+  }
+
   /** Compute the Heterogeneous Value Difference Metric Distance between two points
     *
     * @param xs            first element
@@ -76,8 +86,30 @@ object Utilities {
     * @param nominalValues array indicating the index of the nominal values
     * @return Heterogeneous Value Difference Metric Distance between xs and ys
     */
-  def hvdm(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int]): Double = {
-    0.0
+  def hvdm(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int], sds: Array[Double], attributesCounter: Array[Map[Double, Int]], attributesClassesCounter: Array[Map[Double, Map[Any, Int]]]): Double = {
+
+    def normalized_diff(x: Double, y: Double, sd: Double): Double = abs(x - y) / (4 * sd)
+
+    def normalized_vdm(nax: Double, nay: Double, naxClasses: Map[Any, Int], nayClasses: Map[Any, Int]): Double = {
+      sqrt((naxClasses.values zip nayClasses.values).map(element => pow(abs(element._1 / nax - element._2 / nay), 2)).sum)
+    }
+
+    (xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>
+      if (nominalValues.contains(element._2))
+        normalized_vdm(nax = attributesCounter(element._2)(element._1._1), nay = attributesCounter(element._2)(element._1._1),
+          naxClasses = attributesClassesCounter(element._2)(element._1._1), nayClasses = attributesClassesCounter(element._2)(element._1._2)) else
+        normalized_diff(element._1._1, element._1._2, sds(element._2))).sum
+  }
+
+  /** Compute the number of occurrences for each value x for attribute represented by array attribute and output class c, for each class c in classes
+    *
+    * @param attribute attribute to be used
+    * @param classes   classes present in the dataset
+    * @return map of maps with the form: (value -> (class -> number of elements))
+    */
+  def occurrencesByValueAndClass(attribute: Array[Double], classes: Array[Any]): Map[Double, Map[Any, Int]] = {
+    val auxMap: Map[Double, Array[Any]] = (attribute zip classes).groupBy((element: (Double, Any)) => element._1).map((element: (Double, Array[(Double, Any)])) => (element._1, element._2.map((value: (Double, Any)) => value._2)))
+    auxMap.map((element: (Double, Array[Any])) => Map(element._1 -> element._2.groupBy(identity).mapValues((_: Array[Any]).length))).toList.flatten.toMap
   }
 
   /** Compute the distances all elements against all elements
@@ -87,13 +119,17 @@ object Utilities {
     * @param nominal  array indicating the nominal elements, if present
     * @return matrix array with the distances
     */
-  def computeDistances(data: Array[Array[Double]], distance: Distances.Distance, nominal: Array[Int]): Array[Array[Double]] = {
+  def computeDistances(data: Array[Array[Double]], distance: Distances.Distance, nominal: Array[Int], classes: Array[Any]): Array[Array[Double]] = {
+    val attributesCounter: Array[Map[Double, Int]] = data.transpose.map((column: Array[Double]) => column.groupBy(identity).mapValues((_: Array[Double]).length))
+    val attributesClassesCounter: Array[Map[Double, Map[Any, Int]]] = data.transpose.map((attribute: Array[Double]) => occurrencesByValueAndClass(attribute, classes))
+    val sds: Array[Double] = data.transpose.map((column: Array[Double]) => standardDeviation(column))
+
     val distances: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
     for (i <- data.indices) {
       val row = new Array[Double](data.length)
       for (j <- i until row.length) {
         if (distance == Distances.HVDM)
-          row(j) = hvdm(data(i), data(j), nominal)
+          row(j) = hvdm(data(i), data(j), nominal, sds, attributesCounter, attributesClassesCounter)
         else if (distance == Distances.EUCLIDEAN && nominal.length == 0)
           row(j) = euclideanDistance(data(i), data(j))
         else

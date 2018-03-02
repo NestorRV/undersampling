@@ -36,7 +36,7 @@ class TomekLink(override private[undersampling] val data: Data,
     val initTime: Long = System.nanoTime()
 
     // Distances among the elements
-    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
 
     // Take the index of the elements that have a different class
     val candidates: mutable.Map[Any, Array[Int]] = mutable.Map[Any, Array[Int]]()

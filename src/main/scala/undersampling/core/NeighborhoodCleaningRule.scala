@@ -38,7 +38,7 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     val initTime: Long = System.nanoTime()
 
     // Distances among the elements
-    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal)
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
 
     // index of the element of the interest class
     val indexC: Array[Int] = classesToWorkWith.indices.toArray.filter((label: Int) => classesToWorkWith(label) == this.untouchableClass)
