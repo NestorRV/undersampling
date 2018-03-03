@@ -36,11 +36,11 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
     }
 
-    // Start the time
-    val initTime: Long = System.nanoTime()
-
     // Distances among the elements
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
+
+    // Start the time
+    val initTime: Long = System.nanoTime()
 
     // Indicate the corresponding group: 1 for store, 0 for unknown, -1 for grabbag
     val location: Array[Int] = List.fill(dataToWorkWith.length)(0).toArray

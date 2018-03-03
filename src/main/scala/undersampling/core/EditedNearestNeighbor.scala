@@ -33,11 +33,11 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
 
-    // Start the time
-    val initTime: Long = System.nanoTime()
-
     // Distances among the elements
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
+
+    // Start the time
+    val initTime: Long = System.nanoTime()
 
     val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = classesToWorkWith.indices.toArray

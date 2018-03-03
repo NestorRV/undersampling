@@ -38,11 +38,11 @@ class OneSideSelection(override private[undersampling] val data: Data,
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
 
-    // Start the time
-    val initTime: Long = System.nanoTime()
-
     // Distances among the elements
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
+
+    // Start the time
+    val initTime: Long = System.nanoTime()
 
     // Let's save all the positive instances
     val positives: Array[Int] = classesToWorkWith.zipWithIndex.filter((pair: (Any, Int)) => pair._1 == this.untouchableClass).map((_: (Any, Int))._2)
