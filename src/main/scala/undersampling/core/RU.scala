@@ -12,9 +12,9 @@ import scala.util.Random
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class RandomUndersampling(override private[undersampling] val data: Data,
-                          override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                          override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class RU(override private[undersampling] val data: Data,
+         override private[undersampling] val seed: Long = System.currentTimeMillis(),
+         override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   /** This algorithm preserve, at least, numberOfElements elements from the majority class
     *

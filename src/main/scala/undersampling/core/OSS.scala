@@ -14,9 +14,9 @@ import scala.util.Random
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class OneSideSelection(override private[undersampling] val data: Data,
-                       override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                       override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class OSS(override private[undersampling] val data: Data,
+          override private[undersampling] val seed: Long = System.currentTimeMillis(),
+          override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   /** Compute the One-Side Selection algorithm.
     *
@@ -60,13 +60,13 @@ class OneSideSelection(override private[undersampling] val data: Data,
     // Add the misclassified instances to C
     val finalC: Array[Int] = (misclassified ++ c).distinct
 
-    // Construct a Data object to be passed to TomekLink
+    // Construct a Data object to be passed to TL
     val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(finalC map dataToWorkWith),
       _originalClasses = finalC map classesToWorkWith, _fileInfo = this.data._fileInfo)
     // But the untouchableClass must be the same
-    val tl = new TomekLink(auxData, minorityClass = this.untouchableClass)
+    val tl = new TL(auxData, minorityClass = this.untouchableClass)
     val resultTL: Data = tl.sample(file = None, distance = distance)
-    // The final index is the result of applying TomekLink to the content of C
+    // The final index is the result of applying TL to the content of C
     val finalIndex: Array[Int] = classesToWorkWith.indices.toList.diff(resultTL._index.toList map finalC).toArray
 
     // Stop the time

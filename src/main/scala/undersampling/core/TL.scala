@@ -13,9 +13,9 @@ import scala.collection.mutable.ArrayBuffer
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class TomekLink(override private[undersampling] val data: Data,
-                override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class TL(override private[undersampling] val data: Data,
+         override private[undersampling] val seed: Long = System.currentTimeMillis(),
+         override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   /** Undersampling method based in removing Tomek Links
     *
@@ -48,12 +48,12 @@ class TomekLink(override private[undersampling] val data: Data,
     val tomekLinks: ArrayBuffer[(Int, Int)] = new ArrayBuffer[(Int, Int)](0)
     // For each instance, I
     for (pair <- nearestNeighbor.zipWithIndex) {
-      // If my nearest neighbour is J and the nearest neighbour of J it's me, I, I and J form a TomekLink
+      // If my nearest neighbour is J and the nearest neighbour of J it's me, I, I and J form a TL
       if (nearestNeighbor(pair._1) == pair._2)
         tomekLinks += ((pair._1, pair._2))
     }
 
-    // Instances that form a TomekLink are going to be removed
+    // Instances that form a TL are going to be removed
     val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).toArray.distinct
     // We remove the all the instances except the associated with the untouchableClass
     val removedInstances: Array[Int] = targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b }

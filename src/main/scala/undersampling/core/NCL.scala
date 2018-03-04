@@ -12,9 +12,9 @@ import scala.collection.mutable.ArrayBuffer
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
-                               override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                               override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class NCL(override private[undersampling] val data: Data,
+          override private[undersampling] val seed: Long = System.currentTimeMillis(),
+          override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   /** Compute the Neighborhood Cleaning Rule (NCL)
     *
@@ -44,11 +44,11 @@ class NeighborhoodCleaningRule(override private[undersampling] val data: Data,
     // index of the rest
     val indexO: Array[Int] = classesToWorkWith.indices.toArray.diff(indexC.toList)
 
-    // look for noisy elements in O. Construct a Data object to be passed to EditedNearestNeighbor
+    // look for noisy elements in O. Construct a Data object to be passed to ENN
     val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(indexO map dataToWorkWith),
       _originalClasses = indexO map classesToWorkWith, _fileInfo = this.data._fileInfo)
     // But the untouchableClass must be the same
-    val enn = new EditedNearestNeighbor(auxData, minorityClass = this.untouchableClass)
+    val enn = new ENN(auxData, minorityClass = this.untouchableClass)
     val resultENN: Data = enn.sample(file = None, distance = distance, k = k)
     // noisy elements are the ones that are removed
     val indexA1: Array[Int] = classesToWorkWith.indices.toList.diff(resultENN._index.toList map indexO).toArray
