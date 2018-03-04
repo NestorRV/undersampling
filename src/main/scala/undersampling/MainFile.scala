@@ -49,6 +49,11 @@ object MainFile {
       println("TomekLink")
       val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
       writer.writeDelimitedText(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
+
+      val cpm = new ClassPurityMaximization(d, seed = 0L)
+      println("ClassPurityMaximization")
+      val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
+      writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.data", data = resultCPM)
     }
 
     for (dataset <- arffData) {
@@ -84,6 +89,11 @@ object MainFile {
       println("TomekLink")
       val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
       writer.writeArff(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
+
+      val cpm = new ClassPurityMaximization(d, seed = 0L)
+      println("ClassPurityMaximization")
+      val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
+      writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.data", data = resultCPM)
     }
   }
 }
