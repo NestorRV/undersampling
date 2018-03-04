@@ -91,7 +91,7 @@ object Utilities {
     def normalized_diff(x: Double, y: Double, sd: Double): Double = abs(x - y) / (4 * sd)
 
     def normalized_vdm(nax: Double, nay: Double, naxClasses: Map[Any, Int], nayClasses: Map[Any, Int]): Double = {
-      sqrt((naxClasses.values zip nayClasses.values).map(element => pow(abs(element._1 / nax - element._2 / nay), 2)).sum)
+      sqrt((naxClasses.values zip nayClasses.values).map((element: (Int, Int)) => pow(abs(element._1 / nax - element._2 / nay), 2)).sum)
     }
 
     (xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>

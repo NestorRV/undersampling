@@ -30,8 +30,7 @@ class OneSideSelection(override private[undersampling] val data: Data,
   def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
-    // Use normalized data, but HVDM uses a special normalization
-    // Use randomized data 
+    // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
       (this.index map this.x).toArray

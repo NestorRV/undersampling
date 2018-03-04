@@ -23,6 +23,6 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
   // Otherwise, minorityClass will be used as the minority one
   private[undersampling] val untouchableClass: Any = if (this.minorityClass == -1) this.counter.head._1 else this.minorityClass
   // Index to shuffle (randomize) the data
-  private[undersampling] val index: List[Int] = new util.Random(seed).shuffle(this.y.indices.toList)
+  private[undersampling] val index: List[Int] = new util.Random(this.seed).shuffle(this.y.indices.toList)
 
 }

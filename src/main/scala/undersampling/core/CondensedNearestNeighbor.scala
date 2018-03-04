@@ -21,8 +21,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
-    // Use normalized data, but HVDM uses a special normalization
-    // Use randomized data
+    // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
       (this.index map this.x).toArray
