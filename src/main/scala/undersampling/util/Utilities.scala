@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import undersampling.data.Data
 
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.math.{abs, pow, sqrt}
 
@@ -26,90 +26,6 @@ object Utilities {
     type Distance = Value
     val EUCLIDEAN: Distances.Value = Value
     val HVDM: Distances.Value = Value
-  }
-
-  /** Compute the mode of an array
-    *
-    * @param data array to compute the mode
-    * @return the mode of the array
-    */
-  def mode(data: Array[Any]): Any = {
-    val uniqueValues: Array[Any] = data.distinct
-    val dict: mutable.Map[Any, Int] = collection.mutable.Map[Any, Int]()
-    for (value <- uniqueValues) {
-      dict += (value -> 0)
-    }
-
-    for (e <- data) {
-      dict(e) += 1
-    }
-
-    dict.toSeq.sortBy((_: (Any, Int))._2).reverse.head._1
-  }
-
-  /** Compute the Euclidean Distance between two points
-    *
-    * @param xs first element
-    * @param ys second element
-    * @return Euclidean Distance between xs and ys
-    */
-  def euclideanDistance(xs: Array[Double], ys: Array[Double]): Double = {
-    sqrt((xs zip ys).map((pair: (Double, Double)) => pow(pair._2 - pair._1, 2)).sum)
-  }
-
-  /** Compute the Euclidean-Nominal Distance between two points
-    *
-    * @param xs            first element
-    * @param ys            second element
-    * @param nominalValues array indicating the index of the nominal values
-    * @return Euclidean-Nominal Distance between xs and ys
-    */
-  def euclideanNominalDistance(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int]): Double = {
-    sqrt((xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>
-      if (nominalValues.contains(element._2)) if (element._1._2 == element._1._1) 0 else 1 else pow(element._1._2 - element._1._1, 2)).sum)
-  }
-
-  /** Compute the standard deviation for an array
-    *
-    * @param xs array to be used
-    * @return standard deviation of xs
-    */
-  def standardDeviation(xs: Array[Double]): Double = {
-    val mean: Double = xs.sum / xs.length
-    sqrt(xs.map((a: Double) => math.pow(a - mean, 2)).sum / xs.length)
-  }
-
-  /** Compute the Heterogeneous Value Difference Metric Distance between two points
-    *
-    * @param xs            first element
-    * @param ys            second element
-    * @param nominalValues array indicating the index of the nominal values
-    * @return Heterogeneous Value Difference Metric Distance between xs and ys
-    */
-  def hvdm(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int], sds: Array[Double], attributesCounter: Array[Map[Double, Int]], attributesClassesCounter: Array[Map[Double, Map[Any, Int]]]): Double = {
-
-    def normalized_diff(x: Double, y: Double, sd: Double): Double = abs(x - y) / (4 * sd)
-
-    def normalized_vdm(nax: Double, nay: Double, naxClasses: Map[Any, Int], nayClasses: Map[Any, Int]): Double = {
-      sqrt((naxClasses.values zip nayClasses.values).map((element: (Int, Int)) => pow(abs(element._1 / nax - element._2 / nay), 2)).sum)
-    }
-
-    (xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>
-      if (nominalValues.contains(element._2))
-        normalized_vdm(nax = attributesCounter(element._2)(element._1._1), nay = attributesCounter(element._2)(element._1._1),
-          naxClasses = attributesClassesCounter(element._2)(element._1._1), nayClasses = attributesClassesCounter(element._2)(element._1._2)) else
-        normalized_diff(element._1._1, element._1._2, sds(element._2))).sum
-  }
-
-  /** Compute the number of occurrences for each value x for attribute represented by array attribute and output class c, for each class c in classes
-    *
-    * @param attribute attribute to be used
-    * @param classes   classes present in the dataset
-    * @return map of maps with the form: (value -> (class -> number of elements))
-    */
-  def occurrencesByValueAndClass(attribute: Array[Double], classes: Array[Any]): Map[Double, Map[Any, Int]] = {
-    val auxMap: Map[Double, Array[Any]] = (attribute zip classes).groupBy((element: (Double, Any)) => element._1).map((element: (Double, Array[(Double, Any)])) => (element._1, element._2.map((value: (Double, Any)) => value._2)))
-    auxMap.map((element: (Double, Array[Any])) => Map(element._1 -> element._2.groupBy(identity).mapValues((_: Array[Any]).length))).toList.flatten.toMap
   }
 
   /** Compute the distances all elements against all elements
@@ -145,6 +61,94 @@ object Utilities {
     }
 
     distances.toArray
+  }
+
+  /** Compute the Euclidean Distance between two points
+    *
+    * @param xs first element
+    * @param ys second element
+    * @return Euclidean Distance between xs and ys
+    */
+  def euclideanDistance(xs: Array[Double], ys: Array[Double]): Double = {
+    sqrt((xs zip ys).map((pair: (Double, Double)) => pow(pair._2 - pair._1, 2)).sum)
+  }
+
+  /** Compute the Euclidean-Nominal Distance between two points
+    *
+    * @param xs            first element
+    * @param ys            second element
+    * @param nominalValues array indicating the index of the nominal values
+    * @return Euclidean-Nominal Distance between xs and ys
+    */
+  def euclideanNominalDistance(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int]): Double = {
+    sqrt((xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>
+      if (nominalValues.contains(element._2)) if (element._1._2 == element._1._1) 0 else 1 else pow(element._1._2 - element._1._1, 2)).sum)
+  }
+
+  /** Compute the Heterogeneous Value Difference Metric Distance between two points
+    *
+    * @param xs            first element
+    * @param ys            second element
+    * @param nominalValues array indicating the index of the nominal values
+    * @return Heterogeneous Value Difference Metric Distance between xs and ys
+    */
+  def hvdm(xs: Array[Double], ys: Array[Double], nominalValues: Array[Int], sds: Array[Double], attributesCounter: Array[Map[Double, Int]],
+           attributesClassesCounter: Array[Map[Double, Map[Any, Int]]]): Double = {
+
+    def normalized_diff(x: Double, y: Double, sd: Double): Double = abs(x - y) / (4 * sd)
+
+    def normalized_vdm(nax: Double, nay: Double, naxClasses: Map[Any, Int], nayClasses: Map[Any, Int]): Double = {
+      sqrt((naxClasses.values zip nayClasses.values).map((element: (Int, Int)) => pow(abs(element._1 / nax - element._2 / nay), 2)).sum)
+    }
+
+    (xs zip ys).zipWithIndex.map((element: ((Double, Double), Int)) =>
+      if (nominalValues.contains(element._2))
+        normalized_vdm(nax = attributesCounter(element._2)(element._1._1), nay = attributesCounter(element._2)(element._1._1),
+          naxClasses = attributesClassesCounter(element._2)(element._1._1), nayClasses = attributesClassesCounter(element._2)(element._1._2)) else
+        normalized_diff(element._1._1, element._1._2, sds(element._2))).sum
+  }
+
+  /** Compute the imbalanced ratio (number of instances of all the classes except the minority one divided by number of
+    * instances of the minority class)
+    *
+    * @param counter Array containing a pair representing: (class, number of elements)
+    * @return the imbalanced ratio
+    */
+  def imbalancedRatio(counter: Array[(Any, Int)]): Float = {
+    val minorityElements: Int = counter.head._2
+
+    (counter.map((_: (Any, Int))._2).sum.toFloat - minorityElements) / minorityElements
+  }
+
+  /** Compute the mode of an array
+    *
+    * @param data array to compute the mode
+    * @return the mode of the array
+    */
+  def mode(data: Array[Any]): Any = {
+    val uniqueValues: Array[Any] = data.distinct
+    val dict: mutable.Map[Any, Int] = collection.mutable.Map[Any, Int]()
+    for (value <- uniqueValues) {
+      dict += (value -> 0)
+    }
+
+    for (e <- data) {
+      dict(e) += 1
+    }
+
+    dict.toSeq.sortBy((_: (Any, Int))._2).reverse.head._1
+  }
+
+  /** Convert nanoseconds to minutes, seconds and milliseconds
+    *
+    * @param elapsedTime nanoseconds to be converted
+    * @return String representing the conversion
+    */
+  def nanoTimeToString(elapsedTime: Long): String = {
+    val minutes: Long = TimeUnit.NANOSECONDS.toMinutes(elapsedTime)
+    val seconds: Long = TimeUnit.NANOSECONDS.toSeconds(elapsedTime) - TimeUnit.MINUTES.toSeconds(minutes)
+    val millis: Long = TimeUnit.NANOSECONDS.toMillis(elapsedTime) - TimeUnit.MINUTES.toMillis(minutes) - TimeUnit.SECONDS.toMillis(seconds)
+    "%03d min, %03d sec %03d millis".format(minutes, seconds, millis)
   }
 
   /** Decide the label using the NNRule considering k neighbors of data set
@@ -242,16 +246,25 @@ object Utilities {
     processedData.toArray.transpose
   }
 
-  /** Compute the imbalanced ratio (number of instances of all the classes except the minority one divided by number of
-    * instances of the minority class)
+  /** Compute the number of occurrences for each value x for attribute represented by array attribute and output class c, for each class c in classes
     *
-    * @param counter Array containing a pair representing: (class, number of elements)
-    * @return the imbalanced ratio
+    * @param attribute attribute to be used
+    * @param classes   classes present in the dataset
+    * @return map of maps with the form: (value -> (class -> number of elements))
     */
-  def imbalancedRatio(counter: Array[(Any, Int)]): Float = {
-    val minorityElements: Int = counter.head._2
+  def occurrencesByValueAndClass(attribute: Array[Double], classes: Array[Any]): Map[Double, Map[Any, Int]] = {
+    val auxMap: Map[Double, Array[Any]] = (attribute zip classes).groupBy((element: (Double, Any)) => element._1).map((element: (Double, Array[(Double, Any)])) => (element._1, element._2.map((value: (Double, Any)) => value._2)))
+    auxMap.map((element: (Double, Array[Any])) => Map(element._1 -> element._2.groupBy(identity).mapValues((_: Array[Any]).length))).toList.flatten.toMap
+  }
 
-    (counter.map((_: (Any, Int))._2).sum.toFloat - minorityElements) / minorityElements
+  /** Compute the standard deviation for an array
+    *
+    * @param xs array to be used
+    * @return standard deviation of xs
+    */
+  def standardDeviation(xs: Array[Double]): Double = {
+    val mean: Double = xs.sum / xs.length
+    sqrt(xs.map((a: Double) => math.pow(a - mean, 2)).sum / xs.length)
   }
 
   /** Convert a double matrix to a matrix of Any
@@ -273,7 +286,7 @@ object Utilities {
     *
     * @return normalized data
     */
-  private[undersampling] def zeroOneNormalization(d: Data): Array[Array[Double]] = {
+  def zeroOneNormalization(d: Data): Array[Array[Double]] = {
     val maxV: Array[Double] = d._processedData.transpose.map((col: Array[Double]) => col.max)
     val minV: Array[Double] = d._processedData.transpose.map((col: Array[Double]) => col.min)
     val result: Array[Array[Double]] = d._processedData.transpose.clone()
@@ -283,17 +296,5 @@ object Utilities {
       result(index) = if (aux.count((_: Double).isNaN) == 0) aux else Array.fill[Double](aux.length)(0.0)
     }
     result.transpose
-  }
-
-  /** Convert nanoseconds to minutes, seconds and milliseconds
-    *
-    * @param elapsedTime nanoseconds to be converted
-    * @return String representing the conversion
-    */
-  def nanoTimeToString(elapsedTime: Long): String = {
-    val minutes: Long = TimeUnit.NANOSECONDS.toMinutes(elapsedTime)
-    val seconds: Long = TimeUnit.NANOSECONDS.toSeconds(elapsedTime) - TimeUnit.MINUTES.toSeconds(minutes)
-    val millis: Long = TimeUnit.NANOSECONDS.toMillis(elapsedTime) - TimeUnit.MINUTES.toMillis(minutes) - TimeUnit.SECONDS.toMillis(seconds)
-    "%03d min, %03d sec %03d millis".format(minutes, seconds, millis)
   }
 }
