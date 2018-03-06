@@ -129,13 +129,12 @@ object Utilities {
     * @param maxIterations number of iterations to be done in KMeans algorithm
     * @param seed          seed to initialize the random object
     * @return (dispersion, centroids of the cluster, a map of the form: clusterID -> Array of elements in this cluster,
-    *         a map of the forme: elementID -> cluster associated)
+    *         a map of the form: elementID -> cluster associated)
     */
   def kMeans(data: Array[Array[Double]], numClusters: Int, restarts: Int, minDispersion: Double,
-             maxIterations: Int, seed: Long): (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]], Any) = {
+             maxIterations: Int, seed: Long): (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]) = {
 
-    def run(centroids: Array[Array[Double]], minChangeInDispersion: Double, maxIterations: Int): (Double, Array[Array[Double]],
-      mutable.Map[Int, ArrayBuffer[Int]], mutable.Map[ArrayBuffer[Int], Int]) = {
+    def run(centroids: Array[Array[Double]], minChangeInDispersion: Double, maxIterations: Int): (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]) = {
 
       def clusterIndex(data: Array[Array[Double]], centroids: Array[Array[Double]]): (Double, Array[Int]) = {
         val (distances, memberships) = data.par.map { element: Array[Double] =>
@@ -179,18 +178,13 @@ object Utilities {
         lastDispersion = dispersion
         iteration += 1
       }
-      val inverseAssignment: mutable.Map[ArrayBuffer[Int], Int] = assignment map {
-        (_: (Int, ArrayBuffer[Int])).swap
-      }
-      (lastDispersion, newCentroids, assignment, inverseAssignment)
+      (lastDispersion, newCentroids, assignment)
     }
 
     val centroids: Array[Array[Double]] = new scala.util.Random(seed).shuffle(data.indices.toList).toArray.slice(0, numClusters) map data
-    val results: immutable.IndexedSeq[(Double, Array[Array[Double]],
-      mutable.Map[Int, ArrayBuffer[Int]], mutable.Map[ArrayBuffer[Int], Int])] = (1 to restarts).map((_: Int) => run(centroids, minDispersion, maxIterations))
-    val (bestDispersion, bestCentroids, bestAssignment, bestInverseAssignment) = results.minBy((_: (Double, Array[Array[Double]],
-      mutable.Map[Int, ArrayBuffer[Int]], mutable.Map[ArrayBuffer[Int], Int]))._1)
-    (bestDispersion, bestCentroids, bestAssignment, bestInverseAssignment)
+    val results: immutable.IndexedSeq[(Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]])] = (1 to restarts).map((_: Int) => run(centroids, minDispersion, maxIterations))
+    val (bestDispersion, bestCentroids, bestAssignment) = results.minBy((_: (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]))._1)
+    (bestDispersion, bestCentroids, bestAssignment)
   }
 
   /** Compute the mode of an array
