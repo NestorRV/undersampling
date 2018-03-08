@@ -49,18 +49,12 @@ class CNN(override private[undersampling] val data: Data,
     var changed = true
 
     // Iterate the data, x (except the first instance)
-    for (element <- dataToWorkWith.zipWithIndex.tail) {
+    dataToWorkWith.zipWithIndex.tail.foreach { element: (Array[Double], Int) =>
       // and classify each element with the actual content of store
       val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
       val label: (Any, Array[Int]) = nnRule(distances = distances(element._2), selectedElements = index, labels = classesToWorkWith, k = 1)
-      // If it is misclassified or is a element of the untouchable class
-      if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {
-        // it is added to store
-        location(element._2) = 1
-      } else {
-        // otherwise, it is added to grabbag
-        location(element._2) = -1
-      }
+      // If it is misclassified or is a element of the untouchable class it is added to store; otherwise, it is added to grabbag
+      location(element._2) = if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) 1 else -1
     }
 
     if (file.isDefined) {
@@ -74,19 +68,13 @@ class CNN(override private[undersampling] val data: Data,
     while (location.count((z: Int) => z == -1) != 0 && changed) {
       iteration += 1
       changed = false
+
       // Now, instead of iterating x, we iterate grabbag
-      for (element <- location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1)) {
+      location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1).foreach {element: (Int, Int) =>
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
         val label: (Any, Array[Int]) = nnRule(distances = distances(element._2), selectedElements = index, labels = classesToWorkWith, k = 1)
-        // If it is no well classified or is a element of the minority class
-        if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {
-          // it is added to store
-          location(element._2) = 1
-          changed = true
-        } else {
-          // otherwise, it is added to grabbag
-          location(element._2) = -1
-        }
+        // If it is misclassified or is a element of the untouchable class it is added to store; otherwise, it is added to grabbag
+        location(element._2) = if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {changed = true; 1} else -1
       }
 
       if (file.isDefined) {
