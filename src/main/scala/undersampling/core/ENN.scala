@@ -4,6 +4,7 @@ import undersampling.data.Data
 import undersampling.util.Utilities._
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.parallel.mutable.ParArray
 
 /** Edited Nearest Neighbor rule. Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
   *
@@ -38,19 +39,13 @@ class ENN(override private[undersampling] val data: Data,
     // Start the time
     val initTime: Long = System.nanoTime()
 
-    val selectedElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     val indices: Array[Int] = classesToWorkWith.indices.toArray
 
-    for (index <- indices) {
-      // indices.diff(List(index)) is to exclude the actual element -> LeaveOneOut
-      val label: (Any, Array[Int]) = nnRule(distances = distances(index), selectedElements = indices.diff(List(index)), labels = classesToWorkWith, k = k)
-
-      // if the label matches (it is well classified)
-      if (label._1 == classesToWorkWith(index)) {
-        // the element is useful
-        selectedElements += index
-      }
-    }
+    // indices.diff(List(index)) is to exclude the actual element -> LeaveOneOut
+    val calculatedLabels: ParArray[(Int, (Any, Array[Int]))] = indices.par.map { index: Int => (index, nnRule(distances = distances(index),
+      selectedElements = indices.diff(List(index)), labels = classesToWorkWith, k = k))}
+    // if the label matches (it is well classified) the element is useful
+    val selectedElements: ParArray[Int] = calculatedLabels.par.filter((label: (Int, (Any, Array[Int]))) => label._2._1 == classesToWorkWith(label._1)).map((_: (Int, (Any, Array[Int])))._1)
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
