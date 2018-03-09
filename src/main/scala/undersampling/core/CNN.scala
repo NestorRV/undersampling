@@ -70,11 +70,13 @@ class CNN(override private[undersampling] val data: Data,
       changed = false
 
       // Now, instead of iterating x, we iterate grabbag
-      location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1).foreach {element: (Int, Int) =>
+      location.zipWithIndex.filter((x: (Int, Int)) => x._1 == -1).foreach { element: (Int, Int) =>
         val index: Array[Int] = location.zipWithIndex.collect { case (a, b) if a == 1 => b }
         val label: (Any, Array[Int]) = nnRule(distances = distances(element._2), selectedElements = index, labels = classesToWorkWith, k = 1)
         // If it is misclassified or is a element of the untouchable class it is added to store; otherwise, it is added to grabbag
-        location(element._2) = if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {changed = true; 1} else -1
+        location(element._2) = if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {
+          changed = true; 1
+        } else -1
       }
 
       if (file.isDefined) {
