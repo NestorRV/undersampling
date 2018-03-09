@@ -18,7 +18,7 @@ private[undersampling] class Algorithm(private[undersampling] val data: Data, pr
   // Logger object to log the execution of the algorithms
   private[undersampling] val logger = new Logger
   // Count the number of instances for each class
-  private[undersampling] val counter: Array[(Any, Int)] = this.y.groupBy(identity).mapValues((_: Array[Any]).length).toArray.sortBy { case (_, d) => d }
+  private[undersampling] val counter: Array[(Any, Int)] = this.y.groupBy(identity).mapValues((_: Array[Any]).length).toArray.sortBy((_: (Any, Int))._2)
   // In certain algorithms, reduce the minority class is forbidden, so let's detect what class is it if minorityClass is set to -1.
   // Otherwise, minorityClass will be used as the minority one
   private[undersampling] val untouchableClass: Any = if (this.minorityClass == -1) this.counter.head._1 else this.minorityClass
