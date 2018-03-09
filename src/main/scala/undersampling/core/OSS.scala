@@ -3,9 +3,6 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-import scala.collection.mutable.ArrayBuffer
-import scala.util.Random
-
 /** One-Side Selection algorithm. Original paper: "Addressing he Curse of Imbalanced
   * Training Sets: One-Side Selection" by Miroslav Kubat and Stan Matwin.
   *
@@ -22,12 +19,9 @@ class OSS(override private[undersampling] val data: Data,
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
-    * @param ratio    indicates the instances of the Tomek Links that are going to be remove. "all" will remove all instances,
-    *                 "minority" will remove instances of the minority class and "not minority" will remove all the instances
-    *                 except the ones of the minority class.
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
     // Use normalized data for EUCLIDEAN distance and randomized data
@@ -46,17 +40,17 @@ class OSS(override private[undersampling] val data: Data,
     // Let's save all the positive instances
     val positives: Array[Int] = classesToWorkWith.zipWithIndex.filter((pair: (Any, Int)) => pair._1 == this.untouchableClass).map((_: (Any, Int))._2)
     // Choose a random negative one
-    val randomElement: Int = classesToWorkWith.indices.diff(positives)(Random.nextInt(classesToWorkWith.indices.diff(positives).size))
+    val randomElement: Int = classesToWorkWith.indices.diff(positives)(new util.Random(this.seed).nextInt(classesToWorkWith.length - positives.length))
     // c is the union of positives with the random element
     val c: Array[Int] = positives ++ Array(randomElement)
 
-    val labels: ArrayBuffer[Any] = new ArrayBuffer[Any]()
     // Let's classify S with the content of C
-    for (index <- dataToWorkWith.indices) {
-      labels += nnRule(distances = distances(index), selectedElements = c.diff(List(index)), labels = classesToWorkWith, k = 1)._1
+    val labels: Seq[(Int, Any)] = dataToWorkWith.indices.map { index: Int =>
+      (index, nnRule(distances = distances(index), selectedElements = c.diff(List(index)), labels = classesToWorkWith, k = 1)._1)
     }
+
     // Look for the misclassified instances
-    val misclassified: Array[Int] = (labels zip classesToWorkWith).zipWithIndex.filter((pair: ((Any, Any), Int)) => pair._1._1 != pair._1._2).map((_: ((Any, Any), Int))._2).toArray
+    val misclassified: Array[Int] = labels.filter((label: (Int, Any)) => label._2 != classesToWorkWith(label._1)).map((_: (Int, Any))._1).toArray
     // Add the misclassified instances to C
     val finalC: Array[Int] = (misclassified ++ c).distinct
 
