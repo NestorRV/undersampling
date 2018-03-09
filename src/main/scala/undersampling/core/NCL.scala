@@ -3,7 +3,7 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.parallel.mutable.ParArray
 
 /** Neighborhood Cleaning Rule. Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
   *
@@ -53,33 +53,27 @@ class NCL(override private[undersampling] val data: Data,
     // noisy elements are the ones that are removed
     val indexA1: Array[Int] = classesToWorkWith.indices.toList.diff(resultENN._index.toList map indexO).toArray
 
-    val indexA2: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
     // get the size of all the classes
     val sizeOfClasses: Map[Any, Int] = classesToWorkWith.groupBy(identity).mapValues((_: Array[Any]).length)
     val sizeC: Int = indexC.length
 
-    // search for elements in O that misclassify elements in C
-    for (index <- indexO) {
-      // try to classify all the elements in C using O
-      val label: (Any, Array[Int]) = nnRule(distances = distances(index), selectedElements = indexO.diff(List(index)), labels = classesToWorkWith, k = k)
-
-      // if is misclassified
-      if (label._1 != classesToWorkWith(index)) {
-        // get the neighbours
-        val neighbors: Array[Int] = label._2
-        // and their classes
-        val neighborsClasses: Array[Any] = neighbors.map((n: Int) => classesToWorkWith(n))
-        // and check if the size of theses classes is greater or equal than 0.5 * sizeC
-        val shouldBeAdded: Array[Boolean] = neighborsClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
-
-        // add the neighbours that pass the test to indexA2
-        for (pair <- neighbors zip shouldBeAdded) {
-          if (pair._2) {
-            indexA2 += pair._1
-          }
-        }
-      }
+    // search for elements in O that misclassify elements in C: try to classify all the elements in C using O
+    val calculatedLabels: ParArray[(Int, (Any, Array[Int]))] = indexO.par.map { index: Int =>
+      (index, nnRule(distances = distances(index),
+        selectedElements = indexO.diff(List(index)), labels = classesToWorkWith, k = k))
     }
+
+    val selectedElements: ParArray[(Int, (Any, Array[Int]))] = calculatedLabels.par.filter((label: (Int, (Any, Array[Int]))) => label._2._1 != classesToWorkWith(label._1))
+
+    val indexA2: Array[Int] = selectedElements.flatMap { label: (Int, (Any, Array[Int])) =>
+      // get the neighbours' classes
+      val neighborsClasses: Array[Any] = label._2._2.map((n: Int) => classesToWorkWith(n))
+      // and check if the size of theses classes is greater or equal than 0.5 * sizeC
+      val shouldBeAdded: Array[Boolean] = neighborsClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
+
+      // add the neighbours that pass the test to indexA2
+      (label._2._2 zip shouldBeAdded).par.filter((pair: (Int, Boolean)) => pair._2).map((_: (Int, Boolean))._1)
+    }.toArray
 
     // final index is allData - (indexA1 union indexA2)
     val finalIndex: Array[Int] = classesToWorkWith.indices.diff(indexA1).diff(indexA2).toArray
