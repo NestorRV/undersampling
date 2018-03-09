@@ -3,9 +3,6 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-
 /** Tomek Link algorithm. Original paper: "Two Modifications of CNN" by Ivan Tomek.
   *
   * @param data          data to work with
@@ -38,20 +35,15 @@ class TL(override private[undersampling] val data: Data,
     val initTime: Long = System.nanoTime()
 
     // Take the index of the elements that have a different class
-    val candidates: mutable.Map[Any, Array[Int]] = mutable.Map[Any, Array[Int]]()
-    for (c <- classesToWorkWith.distinct) {
-      candidates += (c -> classesToWorkWith.zipWithIndex.collect { case (a, b) if a != c => b })
-    }
+    val candidates: Map[Any, Array[Int]] = classesToWorkWith.distinct.map { c: Any =>
+      c -> classesToWorkWith.zipWithIndex.collect { case (a, b) if a != c => b }
+    }.toMap
 
     // Look for the nearest neighbour in the rest of the classes
     val nearestNeighbor: Array[Int] = distances.zipWithIndex.map((row: (Array[Double], Int)) => row._1.indexOf((candidates(classesToWorkWith(row._2)) map row._1).min))
-    val tomekLinks: ArrayBuffer[(Int, Int)] = new ArrayBuffer[(Int, Int)](0)
-    // For each instance, I
-    for (pair <- nearestNeighbor.zipWithIndex) {
-      // If my nearest neighbour is J and the nearest neighbour of J it's me, I, I and J form a TL
-      if (nearestNeighbor(pair._1) == pair._2)
-        tomekLinks += ((pair._1, pair._2))
-    }
+
+    // For each instance, I: If my nearest neighbour is J and the nearest neighbour of J it's me, I, I and J form a TL
+    val tomekLinks: Array[(Int, Int)] = nearestNeighbor.zipWithIndex.filter((pair: (Int, Int)) => nearestNeighbor(pair._1) == pair._2)
 
     // Instances that form a TL are going to be removed
     val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).toArray.distinct
