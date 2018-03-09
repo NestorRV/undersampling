@@ -75,7 +75,8 @@ class CNN(override private[undersampling] val data: Data,
         val label: (Any, Array[Int]) = nnRule(distances = distances(element._2), selectedElements = index, labels = classesToWorkWith, k = 1)
         // If it is misclassified or is a element of the untouchable class it is added to store; otherwise, it is added to grabbag
         location(element._2) = if (label._1 != classesToWorkWith(element._2) || classesToWorkWith(element._2) == this.untouchableClass) {
-          changed = true; 1
+          changed = true
+          1
         } else -1
       }
 

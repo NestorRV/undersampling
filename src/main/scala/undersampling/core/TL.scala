@@ -46,7 +46,7 @@ class TL(override private[undersampling] val data: Data,
     val tomekLinks: Array[(Int, Int)] = nearestNeighbor.zipWithIndex.filter((pair: (Int, Int)) => nearestNeighbor(pair._1) == pair._2)
 
     // Instances that form a TL are going to be removed
-    val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).toArray.distinct
+    val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).distinct
     // We remove the all the instances except the associated with the untouchableClass
     val removedInstances: Array[Int] = targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b }
 
