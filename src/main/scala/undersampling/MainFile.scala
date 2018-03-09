@@ -22,38 +22,38 @@ object MainFile {
 
       val cnn = new CNN(d, seed = 0L)
       println("CNN")
-      val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
+      val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
+
+      val cpm = new CPM(d, seed = 0L)
+      println("CPM")
+      val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.data", data = resultCPM)
 
       val enn = new ENN(d, seed = 0L)
       println("ENN")
-      val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
+      val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
       val ncl = new NCL(d, seed = 0L)
       println("NCL")
-      val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
+      val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
 
       val oss = new OSS(d, seed = 0L)
       println("OSS")
-      val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
+      val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
 
       val ru = new RU(d, seed = 0L)
       println("RU")
       val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
       val tl = new TL(d, seed = 0L)
       println("TL")
-      val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
-
-      val cpm = new CPM(d, seed = 0L)
-      println("CPM")
-      val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.data", data = resultCPM)
+      val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
     }
 
     for (dataset <- arffData) {
@@ -62,38 +62,38 @@ object MainFile {
 
       val cnn = new CNN(d, seed = 0L)
       println("CNN")
-      val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeArff(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
+      val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeArff(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
+
+      val cpm = new CPM(d, seed = 0L)
+      println("CPM")
+      val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.data", data = resultCPM)
 
       val enn = new ENN(d, seed = 0L)
       println("ENN")
-      val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeArff(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
+      val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeArff(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
       val ncl = new NCL(d, seed = 0L)
       println("NCL")
-      val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeArff(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
+      val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeArff(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
 
       val oss = new OSS(d, seed = 0L)
       println("OSS")
-      val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeArff(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
+      val resultOSS: Data = oss.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeArff(file = "./input/results/" + dataset + "_OSS.data", data = resultOSS)
 
       val ru = new RU(d, seed = 0L)
       println("RU")
       val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
-      writer.writeArff(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
+      // writer.writeArff(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
       val tl = new TL(d, seed = 0L)
       println("TL")
-      val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeArff(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
-
-      val cpm = new CPM(d, seed = 0L)
-      println("CPM")
-      val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.HVDM)
-      writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.data", data = resultCPM)
+      val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // writer.writeArff(file = "./input/results/" + dataset + "_TL.data", data = resultTL)
     }
   }
 }
