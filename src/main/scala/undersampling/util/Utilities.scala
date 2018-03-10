@@ -133,9 +133,9 @@ object Utilities {
     *         a map of the form: elementID -> cluster associated)
     */
   def kMeans(data: Array[Array[Double]], numClusters: Int, restarts: Int, minDispersion: Double,
-             maxIterations: Int, seed: Long): (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]) = {
+             maxIterations: Int, seed: Long): (Double, Array[Array[Double]], mutable.Map[Int, Array[Int]]) = {
 
-    def run(centroids: Array[Array[Double]], minChangeInDispersion: Double, maxIterations: Int): (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]) = {
+    def run(centroids: Array[Array[Double]], minChangeInDispersion: Double, maxIterations: Int): (Double, Array[Array[Double]], mutable.Map[Int, Array[Int]]) = {
 
       def clusterIndex(data: Array[Array[Double]], centroids: Array[Array[Double]]): (Double, Array[Int]) = {
         val (distances, memberships) = data.par.map { element: Array[Double] =>
@@ -147,7 +147,7 @@ object Utilities {
       }
 
       def getCentroids(data: Array[Array[Double]], memberships: Array[Int], numClusters: Int): (Array[Array[Double]],
-        mutable.Map[Int, ArrayBuffer[Int]]) = {
+        mutable.Map[Int, Array[Int]]) = {
         val assignment: mutable.Map[Int, ArrayBuffer[Int]] = mutable.LinkedHashMap[Int, ArrayBuffer[Int]]()
         (0 until numClusters).toList.foreach((c: Int) => assignment(c) = new ArrayBuffer[Int](0))
 
@@ -160,7 +160,8 @@ object Utilities {
         val centroids: Array[Array[Double]] = assignment.map((e: (Int, ArrayBuffer[Int])) => for (column <- (e._2.toArray map data).transpose) yield {
           column.sum / column.length
         }).toArray
-        (centroids, assignment)
+
+        (centroids, assignment.map((element: (Int, ArrayBuffer[Int])) => element._1 -> element._2.toArray))
       }
 
       val numClusters: Int = centroids.length
@@ -168,11 +169,11 @@ object Utilities {
       var lastDispersion: Double = Double.PositiveInfinity
       var dispersionDiff: Double = Double.PositiveInfinity
       var newCentroids: Array[Array[Double]] = centroids
-      var assignment: mutable.Map[Int, ArrayBuffer[Int]] = mutable.LinkedHashMap[Int, ArrayBuffer[Int]]()
+      var assignment: mutable.Map[Int, Array[Int]] = mutable.LinkedHashMap[Int, Array[Int]]()
 
       while (iteration < maxIterations && dispersionDiff > minChangeInDispersion) {
         val (dispersion: Double, memberships: Array[Int]) = clusterIndex(data, newCentroids)
-        val aux: (Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]) = getCentroids(data, memberships, numClusters)
+        val aux: (Array[Array[Double]], mutable.Map[Int, Array[Int]]) = getCentroids(data, memberships, numClusters)
         newCentroids = aux._1
         assignment = aux._2
         dispersionDiff = math.abs(lastDispersion - dispersion)
@@ -183,8 +184,8 @@ object Utilities {
     }
 
     val centroids: Array[Array[Double]] = new scala.util.Random(seed).shuffle(data.indices.toList).toArray.slice(0, numClusters) map data
-    val results: immutable.IndexedSeq[(Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]])] = (1 to restarts).map((_: Int) => run(centroids, minDispersion, maxIterations))
-    val (bestDispersion, bestCentroids, bestAssignment) = results.minBy((_: (Double, Array[Array[Double]], mutable.Map[Int, ArrayBuffer[Int]]))._1)
+    val results: immutable.IndexedSeq[(Double, Array[Array[Double]], mutable.Map[Int, Array[Int]])] = (1 to restarts).map((_: Int) => run(centroids, minDispersion, maxIterations))
+    val (bestDispersion, bestCentroids, bestAssignment) = results.minBy((_: (Double, Array[Array[Double]], mutable.Map[Int, Array[Int]]))._1)
     (bestDispersion, bestCentroids, bestAssignment)
   }
 
