@@ -40,27 +40,28 @@ object Utilities {
     val attributesClassesCounter: Array[Map[Double, Map[Any, Int]]] = data.transpose.map((attribute: Array[Double]) => occurrencesByValueAndClass(attribute, classes))
     val sds: Array[Double] = data.transpose.map((column: Array[Double]) => standardDeviation(column))
 
-    val distances: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
-    for (i <- data.indices) {
-      val row = new Array[Double](data.length)
-      for (j <- i until row.length) {
-        if (distance == Distances.HVDM)
-          row(j) = hvdm(data(i), data(j), nominal, sds, attributesCounter, attributesClassesCounter)
-        else if (distance == Distances.EUCLIDEAN && nominal.length == 0)
-          row(j) = euclideanDistance(data(i), data(j))
-        else
-          row(j) = euclideanNominalDistance(data(i), data(j), nominal)
+    val distances: Array[Array[Double]] = Array.fill[Array[Double]](data.length)(new Array[Double](data.length))
+
+    data.indices.par.foreach { i: Int =>
+      data.indices.par.foreach { j: Int =>
+        if (j >= i) {
+          if (distance == Distances.HVDM) {
+            distances(i)(j) = hvdm(data(i), data(j), nominal, sds, attributesCounter, attributesClassesCounter)
+            distances(j)(i) = distances(i)(j)
+          }
+          else if (distance == Distances.EUCLIDEAN && nominal.length == 0) {
+            distances(i)(j) = euclideanDistance(data(i), data(j))
+            distances(j)(i) = distances(i)(j)
+          }
+          else {
+            distances(i)(j) = euclideanNominalDistance(data(i), data(j), nominal)
+            distances(j)(i) = distances(i)(j)
+          }
+        }
       }
-      distances += row
     }
 
-    for (i <- data.indices) {
-      for (j <- i until data.length) {
-        distances(j)(i) = distances(i)(j)
-      }
-    }
-
-    distances.toArray
+    distances
   }
 
   /** Compute the Euclidean Distance between two points
@@ -193,17 +194,7 @@ object Utilities {
     * @return the mode of the array
     */
   def mode(data: Array[Any]): Any = {
-    val uniqueValues: Array[Any] = data.distinct
-    val dict: mutable.Map[Any, Int] = collection.mutable.Map[Any, Int]()
-    for (value <- uniqueValues) {
-      dict += (value -> 0)
-    }
-
-    for (e <- data) {
-      dict(e) += 1
-    }
-
-    dict.toSeq.sortBy((_: (Any, Int))._2).reverse.head._1
+    data.groupBy(identity).mapValues((_: Array[Any]).length).toArray.maxBy((_: (Any, Int))._2)._2
   }
 
   /** Convert nanoseconds to minutes, seconds and milliseconds
@@ -241,9 +232,7 @@ object Utilities {
     * @return matrix of doubles containing the data
     */
   def processData(data: Data): Array[Array[Double]] = {
-    val processedData: ArrayBuffer[Array[Double]] = new ArrayBuffer[Array[Double]](0)
-
-    for (column <- data._originalData.transpose.zipWithIndex) {
+    val processedData: Array[Array[Double]] = data._originalData.transpose.zipWithIndex.map { column: (Array[Any], Int) =>
       // let's look for the NA values
       val naIndex: Array[Int] = column._1.zipWithIndex.filter((_: (Any, Int))._1 == "undersampling_NA").map((_: (Any, Int))._2)
       // If they exist
@@ -255,62 +244,46 @@ object Utilities {
           // compute the mean of the present values
           val arrayDouble: Array[Double] = (nonNAIndex map column._1).map((_: Any).asInstanceOf[Double])
           val mean: Double = arrayDouble.sum / arrayDouble.length
-          val array: Array[Any] = column._1
+          val array: Array[Any] = column._1.clone()
           // replace all the NA values with the mean
-          for (index <- naIndex)
-            array(index) = mean
+          naIndex.foreach((index: Int) => array(index) = mean)
 
-          processedData += array.map((_: Any).asInstanceOf[Double])
+          array.map((_: Any).asInstanceOf[Double])
         } else {
           // compute the mode of the present values
           val m: Any = mode(nonNAIndex map column._1)
           val array: Array[Any] = column._1.clone()
           // replace all the NA values with the mode
-          for (index <- naIndex)
-            array(index) = m
+          naIndex.foreach((index: Int) => array(index) = m)
 
           // After replacing the NA values, we change them to numerical values (0, 1, 2, ..., N)
           val uniqueValues: Array[Any] = array.distinct
-          val dict: mutable.Map[Any, Double] = mutable.Map[Any, Double]()
-          var counter: Double = 0.0
-          for (value <- uniqueValues) {
-            dict += (value -> counter)
-            counter += 1.0
-          }
+          var counter: Double = -1.0
+          val dict: Map[Any, Double] = uniqueValues.map { value: Any => counter += 1.0; value -> counter }.toMap
+          array.indices.foreach((i: Int) => array(i) = dict(array(i)))
 
-          for (i <- array.indices) {
-            array(i) = dict(array(i))
-          }
-
-          processedData += array.map((_: Any).asInstanceOf[Double])
+          array.map((_: Any).asInstanceOf[Double])
         }
       } else {
         // If there is no NA values
         // If the column is not a nominal value
         if (data._nominal.contains(column._2)) {
-          // we change them to numerical values (0, 1, 2, ..., N)
-          val uniqueValues: Array[Any] = column._1.distinct
-          val dict: mutable.Map[Any, Double] = mutable.Map[Any, Double]()
-          var counter: Double = 0.0
-          for (value <- uniqueValues) {
-            dict += (value -> counter)
-            counter += 1.0
-          }
-
           val array: Array[Any] = column._1.clone()
-          for (i <- array.indices) {
-            array(i) = dict(array(i))
-          }
+          // we change them to numerical values (0, 1, 2, ..., N)
+          val uniqueValues: Array[Any] = array.distinct
+          var counter: Double = -1.0
+          val dict: Map[Any, Double] = uniqueValues.map { value: Any => counter += 1.0; value -> counter }.toMap
+          array.indices.foreach((i: Int) => array(i) = dict(array(i)))
 
-          processedData += array.map((_: Any).asInstanceOf[Double])
+          array.map((_: Any).asInstanceOf[Double])
         } else {
           // Store the data as is
-          processedData += column._1.map((_: Any).asInstanceOf[Double])
+          column._1.map((_: Any).asInstanceOf[Double])
         }
       }
     }
 
-    processedData.toArray.transpose
+    processedData.transpose
   }
 
   /** Compute the number of occurrences for each value x for attribute represented by array attribute and output class c, for each class c in classes
@@ -340,12 +313,7 @@ object Utilities {
     * @return matrix of Any
     */
   def toXData(d: Array[Array[Double]]): Array[Array[Any]] = {
-    val r: Array[Array[Any]] = new Array[Array[Any]](d.length)
-    for (row <- d.zipWithIndex) {
-      r(row._2) = row._1.map((_: Double).asInstanceOf[Any])
-    }
-
-    r.asInstanceOf[Array[Array[Any]]]
+    d.map((row: Array[Double]) => row.map((_: Double).asInstanceOf[Any]))
   }
 
   /** Normalize the data as follow: for each column, x, (x-min(x))/(max(x)-min(x))
@@ -358,7 +326,7 @@ object Utilities {
     val minV: Array[Double] = d._processedData.transpose.map((col: Array[Double]) => col.min)
     val result: Array[Array[Double]] = d._processedData.transpose.clone()
 
-    for (index <- d._processedData.transpose.indices.diff(d._nominal)) {
+    d._processedData.transpose.indices.diff(d._nominal).par.foreach { index: Int =>
       val aux: Array[Double] = result(index).map((element: Double) => (element - minV(index)).toFloat / (maxV(index) - minV(index)))
       result(index) = if (aux.count((_: Double).isNaN) == 0) aux else Array.fill[Double](aux.length)(0.0)
     }
