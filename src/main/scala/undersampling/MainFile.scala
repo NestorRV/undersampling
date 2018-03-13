@@ -50,6 +50,11 @@ object MainFile {
       val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
+      val sbc = new SBC(d, seed = 0L)
+      println("SBC")
+      val resultSBC: Data = sbc.sample(file = Option("./input/logs/" + dataset), numClusters = 25)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_SBC.data", data = resultSBC)
+
       val tl = new TL(d, seed = 0L)
       println("TL")
       val resultTL: Data = tl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
@@ -89,6 +94,11 @@ object MainFile {
       println("RU")
       val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
       // writer.writeArff(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
+
+      val sbc = new SBC(d, seed = 0L)
+      println("SBC")
+      val resultSBC: Data = sbc.sample(file = Option("./input/logs/" + dataset), numClusters = 25)
+      // writer.writeArff(file = "./input/results/" + dataset + "_SBC.data", data = resultSBC)
 
       val tl = new TL(d, seed = 0L)
       println("TL")

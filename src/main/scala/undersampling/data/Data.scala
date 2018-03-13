@@ -4,7 +4,7 @@ import undersampling.util.Utilities.processData
 
 /** Data structure used by the algorithms
   *
-  * @param _nominal         array to know which classes are nominal
+  * @param _nominal         array to know which attributes are nominal
   * @param _originalData    data associated to the file (x)
   * @param _originalClasses classes associated to the file (y)
   * @param _fileInfo        object with the information needed to save the data into a file

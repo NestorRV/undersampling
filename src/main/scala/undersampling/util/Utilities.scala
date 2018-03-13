@@ -124,6 +124,7 @@ object Utilities {
   /** Compute KMeans algorithm
     *
     * @param data          data to be clustered
+    * @param nominal       array to know which attributes are nominal
     * @param numClusters   number of clusters to be created
     * @param restarts      number of times to relaunch the algorithm
     * @param minDispersion stop if dispersion is lower than this value
@@ -132,14 +133,14 @@ object Utilities {
     * @return (dispersion, centroids of the cluster, a map of the form: clusterID -> Array of elements in this cluster,
     *         a map of the form: elementID -> cluster associated)
     */
-  def kMeans(data: Array[Array[Double]], numClusters: Int, restarts: Int, minDispersion: Double,
+  def kMeans(data: Array[Array[Double]], nominal: Array[Int], numClusters: Int, restarts: Int, minDispersion: Double,
              maxIterations: Int, seed: Long): (Double, Array[Array[Double]], mutable.Map[Int, Array[Int]]) = {
 
     def run(centroids: Array[Array[Double]], minChangeInDispersion: Double, maxIterations: Int): (Double, Array[Array[Double]], mutable.Map[Int, Array[Int]]) = {
 
       def clusterIndex(data: Array[Array[Double]], centroids: Array[Array[Double]]): (Double, Array[Int]) = {
         val (distances, memberships) = data.par.map { element: Array[Double] =>
-          val distances: Array[Double] = centroids.map((c: Array[Double]) => euclideanDistance(c, element))
+          val distances: Array[Double] = centroids.map((c: Array[Double]) => if (nominal.length == 0) euclideanDistance(c, element) else euclideanNominalDistance(c, element, nominal))
           val (bestDistance, bestCentroid) = distances.zipWithIndex.min
           (bestDistance * bestDistance, bestCentroid)
         }.toArray.unzip
@@ -216,11 +217,14 @@ object Utilities {
     * @param selectedElements elements to consider
     * @param labels           labels associated to each point in data
     * @param k                number of neighbors to consider
-    * @return the label associated to newPoint and the index of the k-nearest neighbours, else None
+    * @param which            if it's sets to "nearest", return the nearest which, if it sets "farthest", return the farthest which
+    * @return the label associated to newPoint and the index of the k-nearest which, else None
     */
-  def nnRule(distances: Array[Double], selectedElements: Array[Int], labels: Array[Any], k: Int): (Any, Array[Int]) = {
-    val neighbours: Array[(Double, Int)] = (selectedElements map distances.zipWithIndex).sortBy { case (d, _) => d }
-    val kBestNeighbours: Array[(Double, Int)] = neighbours.slice(0, if (k > selectedElements.length) selectedElements.length else k)
+  def nnRule(distances: Array[Double], selectedElements: Array[Int], labels: Array[Any], k: Int, which: String = "nearest"): (Any, Array[Int]) = {
+    val elements: Array[(Double, Int)] = if (which == "nearest")
+      (selectedElements map distances.zipWithIndex).sortBy { case (d, _) => d } else
+      (selectedElements map distances.zipWithIndex).sortBy { case (d, _) => d }.reverse
+    val kBestNeighbours: Array[(Double, Int)] = elements.slice(0, if (k > selectedElements.length) selectedElements.length else k)
     val index: Array[Int] = kBestNeighbours.map((d: (Double, Int)) => d._2)
     (mode(index map labels), index)
   }
