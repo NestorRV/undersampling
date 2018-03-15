@@ -32,7 +32,7 @@ class CNN(override private[undersampling] val data: Data,
     if (file.isDefined) {
       this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
-      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter)))
+      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
     }
 
     // Distances among the elements
@@ -102,7 +102,7 @@ class CNN(override private[undersampling] val data: Data,
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
-      this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter)))
+      this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
       // Save the time
       this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log

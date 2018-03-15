@@ -112,11 +112,12 @@ object Utilities {
   /** Compute the imbalanced ratio (number of instances of all the classes except the minority one divided by number of
     * instances of the minority class)
     *
-    * @param counter Array containing a pair representing: (class, number of elements)
+    * @param counter       Array containing a pair representing: (class, number of elements)
+    * @param minorityClass indicates which is the minority class
     * @return the imbalanced ratio
     */
-  def imbalancedRatio(counter: Array[(Any, Int)]): Float = {
-    val minorityElements: Int = counter.head._2
+  def imbalancedRatio(counter: Array[(Any, Int)], minorityClass: Any): Float = {
+    val minorityElements: Int = counter.find((e: (Any, Int)) => e._1 == minorityClass).get._2
 
     (counter.map((_: (Any, Int))._2).sum.toFloat - minorityElements) / minorityElements
   }
