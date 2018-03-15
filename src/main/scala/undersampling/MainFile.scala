@@ -35,6 +35,11 @@ object MainFile {
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
+      val nm = new NM(d, seed = 0L)
+      println("NM")
+      val resultNM: Data = nm.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN, version = 3, n_neighbours = 3, ratio = 1.0)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_NM.data", data = resultNM)
+
       val ncl = new NCL(d, seed = 0L)
       println("NCL")
       val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
@@ -84,6 +89,11 @@ object MainFile {
       println("NCL")
       val resultNCL: Data = ncl.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
       // writer.writeArff(file = "./input/results/" + dataset + "_NCL.data", data = resultNCL)
+
+      val nm = new NM(d, seed = 0L)
+      println("NM")
+      val resultNM: Data = nm.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN, version = 3, n_neighbours = 3, ratio = 1.0)
+      // writer.writeArff(file = "./input/results/" + dataset + "_NM.data", data = resultNM)
 
       val oss = new OSS(d, seed = 0L)
       println("OSS")
