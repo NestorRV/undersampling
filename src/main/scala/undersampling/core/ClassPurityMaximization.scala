@@ -14,14 +14,14 @@ import scala.math.min
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class CPM(override private[undersampling] val data: Data,
-          override private[undersampling] val seed: Long = System.currentTimeMillis(),
-          override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class ClassPurityMaximization(override private[undersampling] val data: Data,
+                              override private[undersampling] val seed: Long = System.currentTimeMillis(),
+                              override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   private[undersampling] val centers: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
   private[undersampling] var distances: Array[Array[Double]] = _
 
-  /** Undersampling method based in CPM clustering
+  /** Undersampling method based in ClassPurityMaximization clustering
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm

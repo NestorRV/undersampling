@@ -212,12 +212,12 @@ object Utilities {
     "%03d min, %03d sec %03d millis".format(minutes, seconds, millis)
   }
 
-  /** Decide the label using the NNRule considering k neighbors of data set
+  /** Decide the label using the NNRule considering k neighbours of data set
     *
     * @param distances        distances between the newInstance element and the rest of elements
     * @param selectedElements elements to consider
     * @param labels           labels associated to each point in data
-    * @param k                number of neighbors to consider
+    * @param k                number of neighbours to consider
     * @param which            if it's sets to "nearest", return the nearest which, if it sets "farthest", return the farthest which
     * @return the label associated to newPoint and the index of the k-nearest which, else None
     */

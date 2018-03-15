@@ -5,22 +5,22 @@ import undersampling.util.Utilities._
 
 import scala.collection.parallel.mutable.ParArray
 
-/** Neighborhood Cleaning Rule. Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
+/** Neighbourhood Cleaning Rule. Original paper: "Improving identification of difficult small classes by balancing class distribution" by J. Laurikkala.
   *
   * @param data          data to work with
   * @param seed          seed to use. If it is not provided, it will use the system time
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class NCL(override private[undersampling] val data: Data,
-          override private[undersampling] val seed: Long = System.currentTimeMillis(),
-          override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class NeighbourhoodCleaningRule(override private[undersampling] val data: Data,
+                                override private[undersampling] val seed: Long = System.currentTimeMillis(),
+                                override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
-  /** Compute the Neighborhood Cleaning Rule (NCL)
+  /** Compute the Neighbourhood Cleaning Rule (NCL)
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
-    * @param k        number of neighbors to use when computing k-NN rule (normally 3 neighbors)
+    * @param k        number of neighbours to use when computing k-NN rule (normally 3 neighbours)
     * @return Data structure with all the important information and index of elements kept
     */
   def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
@@ -46,11 +46,11 @@ class NCL(override private[undersampling] val data: Data,
     // index of the rest
     val indexO: Array[Int] = classesToWorkWith.indices.toArray.diff(indexC.toList)
 
-    // look for noisy elements in O. Construct a Data object to be passed to ENN
+    // look for noisy elements in O. Construct a Data object to be passed to Edited Nearest Neighbour
     val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(indexO map dataToWorkWith),
       _originalClasses = indexO map classesToWorkWith, _fileInfo = this.data._fileInfo)
     // But the untouchableClass must be the same
-    val enn = new ENN(auxData, minorityClass = this.untouchableClass)
+    val enn = new EditedNearestNeighbor(auxData, minorityClass = this.untouchableClass)
     val resultENN: Data = enn.sample(file = None, distance = distance, k = k)
     // noisy elements are the ones that are removed
     val indexA1: Array[Int] = classesToWorkWith.indices.toList.diff(resultENN._index.toList map indexO).toArray
@@ -69,9 +69,9 @@ class NCL(override private[undersampling] val data: Data,
 
     val indexA2: Array[Int] = selectedElements.flatMap { label: (Int, (Any, Array[Int])) =>
       // get the neighbours' classes
-      val neighborsClasses: Array[Any] = label._2._2.map((n: Int) => classesToWorkWith(n))
+      val neighboursClasses: Array[Any] = label._2._2.map((n: Int) => classesToWorkWith(n))
       // and check if the size of theses classes is greater or equal than 0.5 * sizeC
-      val shouldBeAdded: Array[Boolean] = neighborsClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
+      val shouldBeAdded: Array[Boolean] = neighboursClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
 
       // add the neighbours that pass the test to indexA2
       (label._2._2 zip shouldBeAdded).par.collect {case (neighbour, add) if add => neighbour}

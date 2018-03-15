@@ -13,12 +13,12 @@ import scala.util.Random
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class NM(override private[undersampling] val data: Data,
-         override private[undersampling] val seed: Long = System.currentTimeMillis(),
-         override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class NearMiss(override private[undersampling] val data: Data,
+               override private[undersampling] val seed: Long = System.currentTimeMillis(),
+               override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
 
-  /** Compute the Edited Nearest Neighbor rule (ENN rule)
+  /** Compute NearMiss undersampling (NM rule)
     *
     * @param file         file to store the log. If its set to None, log process would not be done
     * @param distance     distance to use when calling the NNRule algorithm

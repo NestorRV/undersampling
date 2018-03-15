@@ -3,24 +3,27 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-/** Tomek Link algorithm. Original paper: "Two Modifications of CNN" by Ivan Tomek.
+/** One-Side Selection algorithm. Original paper: "Addressing he Curse of Imbalanced
+  * Training Sets: One-Side Selection" by Miroslav Kubat and Stan Matwin.
   *
   * @param data          data to work with
   * @param seed          seed to use. If it is not provided, it will use the system time
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class TL(override private[undersampling] val data: Data,
-         override private[undersampling] val seed: Long = System.currentTimeMillis(),
-         override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+class OneSideSelection(override private[undersampling] val data: Data,
+                       override private[undersampling] val seed: Long = System.currentTimeMillis(),
+                       override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
-  /** Undersampling method based in removing Tomek Links
+  /** Compute the One-Side Selection algorithm.
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
+    // Note: the notation used to refers the subsets of data is the used in the original paper.
+
     // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
@@ -36,29 +39,35 @@ class TL(override private[undersampling] val data: Data,
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
     val distancesTime: Long = System.nanoTime() - initDistancesTime
 
-    // Take the index of the elements that have a different class
-    val candidates: Map[Any, Array[Int]] = classesToWorkWith.distinct.map { c: Any =>
-      c -> classesToWorkWith.zipWithIndex.collect { case (a, b) if a != c => b }
-    }.toMap
+    // Let's save all the positive instances
+    val positives: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
+    // Choose a random negative one
+    val randomElement: Int = classesToWorkWith.indices.diff(positives)(new util.Random(this.seed).nextInt(classesToWorkWith.length - positives.length))
+    // c is the union of positives with the random element
+    val c: Array[Int] = positives ++ Array(randomElement)
 
-    // Look for the nearest neighbour in the rest of the classes
-    val nearestNeighbor: Array[Int] = distances.zipWithIndex.map((row: (Array[Double], Int)) => row._1.indexOf((candidates(classesToWorkWith(row._2)) map row._1).min))
+    // Let's classify S with the content of C
+    val labels: Seq[(Int, Any)] = dataToWorkWith.indices.map { index: Int =>
+      (index, nnRule(distances = distances(index), selectedElements = c.diff(List(index)), labels = classesToWorkWith, k = 1)._1)
+    }
 
-    // For each instance, I: If my nearest neighbour is J and the nearest neighbour of J it's me, I, I and J form a TL
-    val tomekLinks: Array[(Int, Int)] = nearestNeighbor.zipWithIndex.filter((pair: (Int, Int)) => nearestNeighbor(pair._1) == pair._2)
+    // Look for the misclassified instances
+    val misclassified: Array[Int] = labels.collect { case (i, label) if label != classesToWorkWith(i) => i }.toArray
+    // Add the misclassified instances to C
+    val finalC: Array[Int] = (misclassified ++ c).distinct
 
-    // Instances that form a TL are going to be removed
-    val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).distinct
-    // We remove the all the instances except the associated with the untouchableClass
-    val removedInstances: Array[Int] = targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b }
-
-    // Get the final index
-    val finalIndex: Array[Int] = dataToWorkWith.indices.diff(removedInstances).toArray
+    // Construct a Data object to be passed to Tomek Link
+    val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(finalC map dataToWorkWith),
+      _originalClasses = finalC map classesToWorkWith, _fileInfo = this.data._fileInfo)
+    // But the untouchableClass must be the same
+    val tl = new TomekLink(auxData, minorityClass = this.untouchableClass)
+    val resultTL: Data = tl.sample(file = None, distance = distance)
+    // The final index is the result of applying TomekLink to the content of C
+    val finalIndex: Array[Int] = classesToWorkWith.indices.toList.diff(resultTL._index.toList map finalC).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
 
-    // Save the data
     this.data._resultData = (finalIndex map this.index).sorted map this.data._originalData
     this.data._resultClasses = (finalIndex map this.index).sorted map this.data._originalClasses
     this.data._index = (finalIndex map this.index).sorted
@@ -79,7 +88,7 @@ class TL(override private[undersampling] val data: Data,
       // Save the time
       this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
-      this.logger.storeFile(file.get + "_TL")
+      this.logger.storeFile(file.get + "_OSS")
     }
 
     this.data
