@@ -197,7 +197,7 @@ object Utilities {
     * @return the mode of the array
     */
   def mode(data: Array[Any]): Any = {
-    data.groupBy(identity).mapValues((_: Array[Any]).length).toArray.maxBy((_: (Any, Int))._2)._2
+    data.groupBy(identity).mapValues((_: Array[Any]).length).toArray.maxBy((_: (Any, Int))._2)._1
   }
 
   /** Convert nanoseconds to minutes, seconds and milliseconds
