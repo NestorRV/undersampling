@@ -33,11 +33,13 @@ class NCL(override private[undersampling] val data: Data,
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
 
-    // Distances among the elements
-    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
-
     // Start the time
     val initTime: Long = System.nanoTime()
+
+    val initDistancesTime: Long = System.nanoTime()
+    // Distances among the elements
+    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
+    val distancesTime: Long = System.nanoTime() - initDistancesTime
 
     // index of the element of the interest class
     val indexC: Array[Int] = classesToWorkWith.indices.toArray.filter((label: Int) => classesToWorkWith(label) == this.untouchableClass)
@@ -86,7 +88,7 @@ class NCL(override private[undersampling] val data: Data,
     this.data._index = (finalIndex map this.index).sorted
 
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "TIME"))
+      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "DISTANCES CALCULATION TIME", "TIME"))
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
 
@@ -96,6 +98,8 @@ class NCL(override private[undersampling] val data: Data,
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+      // Save the distance calculation time
+      this.logger.addMsg("DISTANCE CALCULATION TIME", "Elapsed time: %s".format(nanoTimeToString(distancesTime)))
       // Save the time
       this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
