@@ -38,7 +38,7 @@ class OSS(override private[undersampling] val data: Data,
     val initTime: Long = System.nanoTime()
 
     // Let's save all the positive instances
-    val positives: Array[Int] = classesToWorkWith.zipWithIndex.filter((pair: (Any, Int)) => pair._1 == this.untouchableClass).map((_: (Any, Int))._2)
+    val positives: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // Choose a random negative one
     val randomElement: Int = classesToWorkWith.indices.diff(positives)(new util.Random(this.seed).nextInt(classesToWorkWith.length - positives.length))
     // c is the union of positives with the random element
@@ -50,7 +50,7 @@ class OSS(override private[undersampling] val data: Data,
     }
 
     // Look for the misclassified instances
-    val misclassified: Array[Int] = labels.filter((label: (Int, Any)) => label._2 != classesToWorkWith(label._1)).map((_: (Int, Any))._1).toArray
+    val misclassified: Array[Int] = labels.collect { case (i, label) if label != classesToWorkWith(i) => i }.toArray
     // Add the misclassified instances to C
     val finalC: Array[Int] = (misclassified ++ c).distinct
 

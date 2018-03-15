@@ -72,7 +72,7 @@ class NCL(override private[undersampling] val data: Data,
       val shouldBeAdded: Array[Boolean] = neighborsClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
 
       // add the neighbours that pass the test to indexA2
-      (label._2._2 zip shouldBeAdded).par.filter((pair: (Int, Boolean)) => pair._2).map((_: (Int, Boolean))._1)
+      (label._2._2 zip shouldBeAdded).par.collect {case (neighbour, add) if add => neighbour}
     }.toArray
 
     // final index is allData - (indexA1 union indexA2)

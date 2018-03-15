@@ -46,7 +46,7 @@ class ENN(override private[undersampling] val data: Data,
         selectedElements = indices.diff(List(index)), labels = classesToWorkWith, k = k))
     }
     // if the label matches (it is well classified) the element is useful
-    val selectedElements: ParArray[Int] = calculatedLabels.par.filter((label: (Int, (Any, Array[Int]))) => label._2._1 == classesToWorkWith(label._1)).map((_: (Int, (Any, Array[Int])))._1)
+    val selectedElements: ParArray[Int] = calculatedLabels.par.collect { case (i, (label, _)) if label == classesToWorkWith(i) => i }
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
