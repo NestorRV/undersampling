@@ -22,6 +22,8 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
     *
     * @param file          file to store the log. If its set to None, log process would not be done
     * @param method        selection method to apply. Possible options: random, NearMiss1, NearMiss2, NearMiss3, MostDistant and MostFar
+    * @param m             ratio used in the SSize calculation
+    * @param k             number of neighbours to use when computing k-NN rule (normally 3 neighbours)
     * @param numClusters   number of clusters to be created by KMeans algorithm
     * @param restarts      number of times to relaunch KMeans algorithm
     * @param minDispersion stop KMeans algorithm if dispersion is lower than this value
