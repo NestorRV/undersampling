@@ -116,10 +116,8 @@ object Utilities {
     * @param minorityClass indicates which is the minority class
     * @return the imbalanced ratio
     */
-  def imbalancedRatio(counter: Array[(Any, Int)], minorityClass: Any): Float = {
-    val minorityElements: Int = counter.find((e: (Any, Int)) => e._1 == minorityClass).get._2
-
-    (counter.map((_: (Any, Int))._2).sum.toFloat - minorityElements) / minorityElements
+  def imbalancedRatio(counter: Map[Any, Int], minorityClass: Any): Double = {
+    (counter.values.sum.toFloat - counter(minorityClass)) / counter(minorityClass)
   }
 
   /** Compute KMeans algorithm

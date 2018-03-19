@@ -34,7 +34,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // It is not possible to select more elements than the available (all the elements except the ones associated with the untouchableClass)
-    val elementsToSelect: Int = if (numberOfElements > this.counter.tail.map((_: (Any, Int))._2).sum) this.counter.tail.map((_: (Any, Int))._2).sum else numberOfElements
+    val elementsToSelect: Int = if (numberOfElements > this.counter.tail.values.sum) this.counter.tail.values.sum else numberOfElements
     // Get the index of the elements in the majority class
     val majorityIndex: Array[Int] = new Random(this.seed).shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray.slice(0, elementsToSelect)
     // Get the index of the reduced data
@@ -53,7 +53,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Map[Any, Int] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio

@@ -74,7 +74,7 @@ class NeighbourhoodCleaningRule(override private[undersampling] val data: Data,
       val shouldBeAdded: Array[Boolean] = neighboursClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
 
       // add the neighbours that pass the test to indexA2
-      (label._2._2 zip shouldBeAdded).par.collect {case (neighbour, add) if add => neighbour}
+      (label._2._2 zip shouldBeAdded).par.collect { case (neighbour, add) if add => neighbour }
     }.toArray
 
     // final index is allData - (indexA1 union indexA2)
@@ -93,7 +93,7 @@ class NeighbourhoodCleaningRule(override private[undersampling] val data: Data,
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Map[Any, Int] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio

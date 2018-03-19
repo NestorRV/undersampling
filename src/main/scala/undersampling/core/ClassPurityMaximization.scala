@@ -40,12 +40,12 @@ class ClassPurityMaximization(override private[undersampling] val data: Data,
 
     val initDistancesTime: Long = System.nanoTime()
     // Distances among the elements
-    val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
+    this.distances = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
     val distancesTime: Long = System.nanoTime() - initDistancesTime
 
     // Count the number of positive and negative elements
     val posElements: Int = this.counter.head._2
-    val negElements: Int = this.counter.tail.map((_: (Any, Int))._2).sum
+    val negElements: Int = this.counter.tail.values.sum
     // Compute the impurity
     val impurity: Double = posElements.asInstanceOf[Double] / negElements.asInstanceOf[Double]
     // The first cluster contains all the elements
@@ -67,7 +67,7 @@ class ClassPurityMaximization(override private[undersampling] val data: Data,
       this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
 
       // Recount of classes
-      val newCounter: Array[(Any, Int)] = (this.centers.toArray map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length).toArray
+      val newCounter: Map[Any, Int] = (this.centers.toArray map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
       this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(this.centers.toArray.length))
       this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (this.centers.toArray.length.toFloat / dataToWorkWith.length) * 100).toString)
       // Recompute the Imbalanced Ratio
