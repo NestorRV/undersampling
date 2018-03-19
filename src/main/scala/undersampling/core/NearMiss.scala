@@ -91,7 +91,7 @@ class NearMiss(override private[undersampling] val data: Data,
       // Recompute the Imbalanced Ratio
       this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
       // Save the distance calculation time
-      this.logger.addMsg("DISTANCE CALCULATION TIME", "Elapsed time: %s".format(nanoTimeToString(distancesTime)))
+      this.logger.addMsg("DISTANCES CALCULATION TIME", "Elapsed time: %s".format(nanoTimeToString(distancesTime)))
       // Save the time
       this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
       // Save the log
