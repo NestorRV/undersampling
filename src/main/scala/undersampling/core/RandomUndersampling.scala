@@ -18,11 +18,13 @@ class RandomUndersampling(override private[undersampling] val data: Data,
 
   /** This algorithm preserve, at least, numberOfElements elements from the majority class
     *
-    * @param file             file to store the log. If its set to None, log process would not be done
-    * @param numberOfElements number of elements to preserve from the majority class
+    * @param file  file to store the log. If its set to None, log process would not be done
+    * @param ratio ratio to know how many majority class examples to preserve. By default it's set to 1 so there
+    *              will be the same minority class examples as majority class examples. If it's set to 2, there
+    *              will be the twice as many majority class examples as minority class examples
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, numberOfElements: Int): Data = {
+  def sample(file: Option[String] = None, ratio: Double = 1.0): Data = {
     // Use randomized data 
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
@@ -33,12 +35,11 @@ class RandomUndersampling(override private[undersampling] val data: Data,
 
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
-    // It is not possible to select more elements than the available (all the elements except the ones associated with the untouchableClass)
-    val elementsToSelect: Int = if (numberOfElements > this.counter.tail.values.sum) this.counter.tail.values.sum else numberOfElements
     // Get the index of the elements in the majority class
-    val majorityIndex: Array[Int] = new Random(this.seed).shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray.slice(0, elementsToSelect)
+    val majorityIndex: Array[Int] = new Random(this.seed).shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray
     // Get the index of the reduced data
-    val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
+    val finalIndex: Array[Int] = minorityIndex ++ majorityIndex.slice(0, if ((minorityIndex.length * ratio).toInt > majorityIndex.length)
+      majorityIndex.length else (minorityIndex.length * ratio).toInt)
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
