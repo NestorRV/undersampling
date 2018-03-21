@@ -3,7 +3,7 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-/** One-Side Selection algorithm. Original paper: "Addressing he Curse of Imbalanced
+/** One-Side Selection algorithm. Original paper: "Addressing the Curse of Imbalanced
   * Training Sets: One-Side Selection" by Miroslav Kubat and Stan Matwin.
   *
   * @param data          data to work with
