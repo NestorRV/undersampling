@@ -64,20 +64,22 @@ class TomekLink(override private[undersampling] val data: Data,
     this.data._index = (finalIndex map this.index).sorted
 
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "DISTANCES CALCULATION TIME", "TIME"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
-      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
-
       // Recount of classes
       val newCounter: Map[Any, Int] = (finalIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(finalIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
+
+      this.logger.addMsg("ORIGINAL SIZE: %d".format(dataToWorkWith.length))
+      this.logger.addMsg("NEW DATA SIZE: %d".format(finalIndex.length))
+      this.logger.addMsg("REDUCTION PERCENTAGE: %s".format(100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100))
+
+      this.logger.addMsg("ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
       // Recompute the Imbalanced Ratio
-      this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+      this.logger.addMsg(" IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+
       // Save the distance calculation time
-      this.logger.addMsg("DISTANCES CALCULATION TIME", "Elapsed time: %s".format(nanoTimeToString(distancesTime)))
+      this.logger.addMsg("DISTANCES CALCULATION TIME: %s".format(nanoTimeToString(distancesTime)))
       // Save the time
-      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
+      this.logger.addMsg("TOTAL ELAPSED TIME: %s".format(nanoTimeToString(finishTime - initTime)))
+
       // Save the log
       this.logger.storeFile(file.get + "_TL")
     }

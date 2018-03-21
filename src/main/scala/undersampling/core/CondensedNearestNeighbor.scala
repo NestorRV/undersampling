@@ -30,9 +30,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
 
     if (file.isDefined) {
-      this.logger.setNames(List("DATA SIZE REDUCTION INFORMATION", "IMBALANCED RATIO", "REDUCTION PERCENTAGE", "DISTANCES CALCULATION TIME", "TIME"))
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "ORIGINAL SIZE: %d".format(dataToWorkWith.length))
-      this.logger.addMsg("IMBALANCED RATIO", "ORIGINAL: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
+      this.logger.addMsg("ORIGINAL SIZE: %d".format(dataToWorkWith.length))
     }
 
     // Start the time
@@ -60,8 +58,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     }
 
     if (file.isDefined) {
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "Iteration %d: grabbag size: %d, store size: %d.".format(iteration,
-        location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
+      this.logger.addMsg("ITERATION %d: GRABBAG SIZE: %d, STORE SIZE: %d.".format(iteration, location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
     }
 
     // After a first pass, iterate grabbag until is exhausted:
@@ -83,8 +80,7 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
       }
 
       if (file.isDefined) {
-        this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "Iteration %d: grabbag size: %d, store size: %d.".format(iteration,
-          location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
+        this.logger.addMsg("ITERATION %d: GRABBAG SIZE: %d, STORE SIZE: %d.".format(iteration, location.count((z: Int) => z == -1), location.count((z: Int) => z == 1)))
       }
     }
 
@@ -101,14 +97,19 @@ class CondensedNearestNeighbor(override private[undersampling] val data: Data,
     if (file.isDefined) {
       // Recount of classes
       val newCounter: Map[Any, Int] = (storeIndex map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
-      this.logger.addMsg("DATA SIZE REDUCTION INFORMATION", "NEW DATA SIZE: %d".format(storeIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE", (100 - (storeIndex.length.toFloat / dataToWorkWith.length) * 100).toString)
+
+      this.logger.addMsg("NEW DATA SIZE: %d".format(storeIndex.length))
+      this.logger.addMsg("REDUCTION PERCENTAGE: %s".format(100 - (storeIndex.length.toFloat / dataToWorkWith.length) * 100))
+
+      this.logger.addMsg("ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
       // Recompute the Imbalanced Ratio
-      this.logger.addMsg("IMBALANCED RATIO", "NEW: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+      this.logger.addMsg(" IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+
       // Save the distance calculation time
-      this.logger.addMsg("DISTANCES CALCULATION TIME", "Elapsed time: %s".format(nanoTimeToString(distancesTime)))
+      this.logger.addMsg("DISTANCES CALCULATION TIME: %s".format(nanoTimeToString(distancesTime)))
       // Save the time
-      this.logger.addMsg("TIME", "Elapsed time: %s".format(nanoTimeToString(finishTime - initTime)))
+      this.logger.addMsg("TOTAL ELAPSED TIME: %s".format(nanoTimeToString(finishTime - initTime)))
+
       // Save the log
       this.logger.storeFile(file.get + "_CNN")
     }
