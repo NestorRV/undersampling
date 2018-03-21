@@ -16,7 +16,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
                           override private[undersampling] val seed: Long = System.currentTimeMillis(),
                           override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
-  /** This algorithm preserve, at least, numberOfElements elements from the majority class
+  /** Compute a random undersampling.
     *
     * @param file        file to store the log. If its set to None, log process would not be done
     * @param ratio       ratio to know how many majority class examples to preserve. By default it's set to 1 so there
