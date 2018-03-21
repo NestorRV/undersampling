@@ -18,13 +18,14 @@ class RandomUndersampling(override private[undersampling] val data: Data,
 
   /** This algorithm preserve, at least, numberOfElements elements from the majority class
     *
-    * @param file  file to store the log. If its set to None, log process would not be done
-    * @param ratio ratio to know how many majority class examples to preserve. By default it's set to 1 so there
-    *              will be the same minority class examples as majority class examples. If it's set to 2, there
-    *              will be the twice as many majority class examples as minority class examples
+    * @param file        file to store the log. If its set to None, log process would not be done
+    * @param ratio       ratio to know how many majority class examples to preserve. By default it's set to 1 so there
+    *                    will be the same minority class examples as majority class examples. If it's set to 2, there
+    *                    will be the twice as many majority class examples as minority class examples
+    * @param replacement whether or not to sample randomly with replacement or not. false by default
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, ratio: Double = 1.0): Data = {
+  def sample(file: Option[String] = None, ratio: Double = 1.0, replacement: Boolean = false): Data = {
     // Use randomized data 
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
@@ -36,10 +37,13 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     // The elements in the minority class (untouchableClass) are maintained
     val minorityIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
     // Get the index of the elements in the majority class
-    val majorityIndex: Array[Int] = new Random(this.seed).shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray
+    val random: Random = new Random(this.seed)
+    val majorityIndex: Array[Int] = random.shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray
+    val selectedMajorityIndex: Array[Int] = if (!replacement) majorityIndex.slice(0, if ((minorityIndex.length * ratio).toInt > majorityIndex.length)
+      majorityIndex.length else (minorityIndex.length * ratio).toInt) else majorityIndex.indices.map((_: Int) => random.nextInt(majorityIndex.length)).toArray map majorityIndex
+
     // Get the index of the reduced data
-    val finalIndex: Array[Int] = minorityIndex ++ majorityIndex.slice(0, if ((minorityIndex.length * ratio).toInt > majorityIndex.length)
-      majorityIndex.length else (minorityIndex.length * ratio).toInt)
+    val finalIndex: Array[Int] = minorityIndex ++ selectedMajorityIndex
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
