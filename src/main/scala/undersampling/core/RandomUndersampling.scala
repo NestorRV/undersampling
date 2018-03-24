@@ -39,8 +39,8 @@ class RandomUndersampling(override private[undersampling] val data: Data,
     // Get the index of the elements in the majority class
     val random: Random = new Random(this.seed)
     val majorityIndex: Array[Int] = random.shuffle(classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList).toArray
-    val selectedMajorityIndex: Array[Int] = if (!replacement) majorityIndex.slice(0, if ((minorityIndex.length * ratio).toInt > majorityIndex.length)
-      majorityIndex.length else (minorityIndex.length * ratio).toInt) else majorityIndex.indices.map((_: Int) => random.nextInt(majorityIndex.length)).toArray map majorityIndex
+    val selectedMajorityIndex: Array[Int] = if (!replacement) majorityIndex.slice(0, (minorityIndex.length * ratio).toInt) else
+      majorityIndex.indices.map((_: Int) => random.nextInt(majorityIndex.length)).toArray map majorityIndex
 
     // Get the index of the reduced data
     val finalIndex: Array[Int] = minorityIndex ++ selectedMajorityIndex

@@ -69,8 +69,7 @@ class NearMiss(override private[undersampling] val data: Data,
       throw new Exception("Invalid argument: version should be: 1, 2 or 3")
     }
 
-    val finalIndex: Array[Int] = minElements ++ selectedMajElements.slice(0, if ((minElements.length * ratio).toInt > selectedMajElements.length)
-      selectedMajElements.length else (minElements.length * ratio).toInt)
+    val finalIndex: Array[Int] = minElements ++ selectedMajElements.slice(0, (minElements.length * ratio).toInt)
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
