@@ -62,7 +62,7 @@ class RandomUndersampling(override private[undersampling] val data: Data,
 
       this.logger.addMsg("ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
       // Recompute the Imbalanced Ratio
-      this.logger.addMsg(" IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+      this.logger.addMsg("IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
 
       // Save the time
       this.logger.addMsg("TOTAL ELAPSED TIME: %s".format(nanoTimeToString(finishTime - initTime)))

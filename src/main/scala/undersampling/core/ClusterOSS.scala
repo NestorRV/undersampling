@@ -102,7 +102,7 @@ class ClusterOSS(override private[undersampling] val data: Data,
 
       this.logger.addMsg("ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
       // Recompute the Imbalanced Ratio
-      this.logger.addMsg(" IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
+      this.logger.addMsg("IMBALANCED RATIO: %s".format(imbalancedRatio(newCounter, this.untouchableClass)))
 
       // Save the kmeans time
       this.logger.addMsg("KMEANS CALCULATION TIME: %s".format(nanoTimeToString(kMeansTime)))
