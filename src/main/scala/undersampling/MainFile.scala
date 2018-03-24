@@ -35,6 +35,11 @@ object MainFile {
       val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
+      val ee = new EasyEnsemble(d, seed = 0L)
+      println("EditedNearestNeighbor")
+      val resultEE: Data = ee.sample(file = Option("./input/logs/" + dataset), n_times = 5)
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_EE.data", data = resultEE)
+
       val enn = new EditedNearestNeighbor(d, seed = 0L)
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
@@ -57,7 +62,7 @@ object MainFile {
 
       val ru = new RandomUndersampling(d, seed = 0L)
       println("RandomUndersampling")
-      val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
+      val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), ratio = 1.0)
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
       val tl = new TomekLink(d, seed = 0L)
@@ -90,6 +95,11 @@ object MainFile {
       val resultCNN: Data = cnn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
       // writer.writeArff(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
+      val ee = new EasyEnsemble(d, seed = 0L)
+      println("EditedNearestNeighbor")
+      val resultEE: Data = ee.sample(file = Option("./input/logs/" + dataset), n_times = 5)
+      // writer.writeArff(file = "./input/results/" + dataset + "_EE.data", data = resultEE)
+
       val enn = new EditedNearestNeighbor(d, seed = 0L)
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
@@ -112,7 +122,7 @@ object MainFile {
 
       val ru = new RandomUndersampling(d, seed = 0L)
       println("RandomUndersampling")
-      val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), numberOfElements = 100)
+      val resultRU: Data = ru.sample(file = Option("./input/logs/" + dataset), ratio = 1.0)
       // writer.writeArff(file = "./input/results/" + dataset + "_RU.data", data = resultRU)
 
       val tl = new TomekLink(d, seed = 0L)
