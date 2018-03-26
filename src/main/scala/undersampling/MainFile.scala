@@ -36,7 +36,7 @@ object MainFile {
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
       val ee = new EasyEnsemble(d, seed = 0L)
-      println("EditedNearestNeighbor")
+      println("EasyEnsemble")
       val resultEE: Data = ee.sample(file = Option("./input/logs/" + dataset), n_times = 5)
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_EE.data", data = resultEE)
 
@@ -96,7 +96,7 @@ object MainFile {
       // writer.writeArff(file = "./input/results/" + dataset + "_CNN.data", data = resultCNN)
 
       val ee = new EasyEnsemble(d, seed = 0L)
-      println("EditedNearestNeighbor")
+      println("EasyEnsemble")
       val resultEE: Data = ee.sample(file = Option("./input/logs/" + dataset), n_times = 5)
       // writer.writeArff(file = "./input/results/" + dataset + "_EE.data", data = resultEE)
 
