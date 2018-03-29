@@ -68,7 +68,7 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
     val majorityElements: Array[Int] = if (method.equals("random")) {
       sSizes.filter((_: (Int, Int))._2 != 0).flatMap { clusteridSize: (Int, Int) =>
         random.shuffle(assignment(clusteridSize._1).toList).filter((e: Int) =>
-          classesToWorkWith(e) != this.untouchableClass).slice(0, clusteridSize._2)
+          classesToWorkWith(e) != this.untouchableClass).take(clusteridSize._2)
       }
     } else {
       sSizes.filter((_: (Int, Int))._2 != 0).flatMap { clusteridSize: (Int, Int) =>
@@ -84,7 +84,7 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
               euclideanNominalDistance(dataToWorkWith(instance), centroids(clusteridSize._1), this.data._nominal)
           }
 
-          distances.zipWithIndex.sortBy((_: (Double, Int))._2).slice(0, clusteridSize._2).map((_: (Double, Int))._2) map assignment(clusteridSize._1)
+          distances.zipWithIndex.sortBy((_: (Double, Int))._2).take(clusteridSize._2).map((_: (Double, Int))._2) map assignment(clusteridSize._1)
         } else {
           val minorityElementsIndex: Array[(Int, Int)] = assignment(clusteridSize._1).zipWithIndex.filter((e: (Int, Int)) => classesToWorkWith(e._1) == this.untouchableClass)
 
@@ -97,7 +97,7 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
               val result: (Any, Array[Int]) = nnRule(distances = distances(majElement._2), selectedElements = minorityElementsIndex.unzip._2, labels = classesToWorkWith, k = k)
               (majElement._1, (result._2 map distances(majElement._2)).sum / result._2.length)
             }
-            meanDistances.sortBy((pair: (Int, Double)) => pair._2).slice(0, clusteridSize._2).map((_: (Int, Double))._1)
+            meanDistances.sortBy((pair: (Int, Double)) => pair._2).take(clusteridSize._2).map((_: (Int, Double))._1)
           } else if (method.equals("NearMiss2")) {
             // selects the majority class samples whose average distances to k farthest minority class samples in the ith cluster are the smallest.
             val meanDistances: Array[(Int, Double)] = majorityElementsIndex.map { (majElement: (Int, Int)) =>
@@ -105,21 +105,21 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
                 labels = classesToWorkWith, k = k, which = "farthest")
               (majElement._1, (result._2 map distances(majElement._2)).sum / result._2.length)
             }
-            meanDistances.sortBy((pair: (Int, Double)) => pair._2).slice(0, clusteridSize._2).map((_: (Int, Double))._1)
+            meanDistances.sortBy((pair: (Int, Double)) => pair._2).take(clusteridSize._2).map((_: (Int, Double))._1)
           } else if (method.equals("NearMiss3")) {
             // selects the majority class samples whose average distances to the closest minority class samples in the ith cluster are the smallest.
             val meanDistances: Array[(Int, Double)] = majorityElementsIndex.map { (majElement: (Int, Int)) =>
               val result: (Any, Array[Int]) = nnRule(distances = distances(majElement._2), selectedElements = minorityElementsIndex.unzip._2, labels = classesToWorkWith, k = 1)
               (majElement._1, (result._2 map distances(majElement._2)).sum / result._2.length)
             }
-            meanDistances.sortBy((pair: (Int, Double)) => pair._2).slice(0, clusteridSize._2).map((_: (Int, Double))._1)
+            meanDistances.sortBy((pair: (Int, Double)) => pair._2).take(clusteridSize._2).map((_: (Int, Double))._1)
           } else if (method.equals("MostDistant")) {
             // selects the majority class samples whose average distances to M closest minority class samples in the ith cluster are the farthest.
             val meanDistances: Array[(Int, Double)] = majorityElementsIndex.map { (majElement: (Int, Int)) =>
               val result: (Any, Array[Int]) = nnRule(distances = distances(majElement._2), selectedElements = minorityElementsIndex.unzip._2, labels = classesToWorkWith, k = k)
               (majElement._1, (result._2 map distances(majElement._2)).sum / result._2.length)
             }
-            meanDistances.sortBy((pair: (Int, Double)) => pair._2).reverse.slice(0, clusteridSize._2).map((_: (Int, Double))._1)
+            meanDistances.sortBy((pair: (Int, Double)) => pair._2).reverse.take(clusteridSize._2).map((_: (Int, Double))._1)
           } else if (method.equals("MostFar")) {
             // selects the majority class samples whose average distances to all minority class samples in the cluster are the farthest
             val meanDistances: Array[(Int, Double)] = majorityElementsIndex.map { (majElement: (Int, Int)) =>
@@ -127,7 +127,7 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
                 k = minorityElementsIndex.unzip._2.length)
               (majElement._1, (result._2 map distances(majElement._2)).sum / result._2.length)
             }
-            meanDistances.sortBy((pair: (Int, Double)) => pair._2).slice(0, clusteridSize._2).map((_: (Int, Double))._1)
+            meanDistances.sortBy((pair: (Int, Double)) => pair._2).take(clusteridSize._2).map((_: (Int, Double))._1)
           } else {
             throw new Exception("Invalid argument: method should be: random, NearMiss1, NearMiss2, NearMiss3, MostDistant or MostFar")
           }

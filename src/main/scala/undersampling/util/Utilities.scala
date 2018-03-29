@@ -183,7 +183,7 @@ object Utilities {
       (lastDispersion, newCentroids, assignment)
     }
 
-    val centroids: Array[Array[Double]] = new scala.util.Random(seed).shuffle(data.indices.toList).toArray.slice(0, numClusters) map data
+    val centroids: Array[Array[Double]] = new scala.util.Random(seed).shuffle(data.indices.toList).toArray.take(numClusters) map data
     val results: immutable.IndexedSeq[(Double, Array[Array[Double]], mutable.Map[Int, Array[Int]])] = (1 to restarts).map((_: Int) => run(centroids, minDispersion, maxIterations))
     val (bestDispersion, bestCentroids, bestAssignment) = results.minBy((_: (Double, Array[Array[Double]], mutable.Map[Int, Array[Int]]))._1)
     (bestDispersion, bestCentroids, bestAssignment)
@@ -223,7 +223,7 @@ object Utilities {
     val elements: Array[(Double, Int)] = if (which == "nearest")
       (selectedElements map distances.zipWithIndex).sortBy { case (d, _) => d } else
       (selectedElements map distances.zipWithIndex).sortBy { case (d, _) => d }.reverse
-    val kBestNeighbours: Array[(Double, Int)] = elements.slice(0, if (k > selectedElements.length) selectedElements.length else k)
+    val kBestNeighbours: Array[(Double, Int)] = elements.take(if (k > selectedElements.length) selectedElements.length else k)
     val index: Array[Int] = kBestNeighbours.map((d: (Double, Int)) => d._2)
     (mode(index map labels), index)
   }

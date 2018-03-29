@@ -43,14 +43,14 @@ class EasyEnsemble(override private[undersampling] val data: Data,
     val majIndex: List[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList
     val majElements: Array[Int] = (0 until n_times).flatMap { _: Int =>
       val majorityIndex: Array[Int] = random.shuffle(majIndex).toArray
-      if (!replacement) majorityIndex.slice(0, (minorityIndex.length * ratio).toInt) else majorityIndex.indices.map((_: Int) =>
+      if (!replacement) majorityIndex.take((minorityIndex.length * ratio).toInt) else majorityIndex.indices.map((_: Int) =>
         random.nextInt(majorityIndex.length)).toArray map majorityIndex
     }.toArray
 
     // Make an histogram and select the majority class examples that have been selected more times
     val majorityIndexHistogram: Array[(Int, Int)] = majElements.groupBy(identity).mapValues((_: Array[Int]).length).toArray.sortBy((_: (Int, Int))._2).reverse
 
-    val majorityIndex: Array[Int] = majorityIndexHistogram.slice(0, (minorityIndex.length * ratio).toInt).map((_: (Int, Int))._1)
+    val majorityIndex: Array[Int] = majorityIndexHistogram.take((minorityIndex.length * ratio).toInt).map((_: (Int, Int))._1)
 
     // Get the index of the reduced data
     val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
