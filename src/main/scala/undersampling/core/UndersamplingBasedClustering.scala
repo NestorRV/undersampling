@@ -30,7 +30,7 @@ class UndersamplingBasedClustering(override private[undersampling] val data: Dat
     * @param maxIterations number of iterations to be done in KMeans algorithm
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, method: String = "random", m: Double = 1.0, k: Int = 3, numClusters: Int,
+  def sample(file: Option[String] = None, method: String = "random", m: Double = 1.0, k: Int = 3, numClusters: Int = 50,
              restarts: Int = 1, minDispersion: Double = 0.0001, maxIterations: Int = 200): Data = {
 
     // Use randomized data 

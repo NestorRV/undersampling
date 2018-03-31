@@ -26,7 +26,7 @@ class ClusterOSS(override private[undersampling] val data: Data,
     * @param maxIterations number of iterations to be done in KMeans algorithm
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3, numClusters: Int,
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3, numClusters: Int = 50,
              restarts: Int = 3, minDispersion: Double = 0.0001, maxIterations: Int = 200): Data = {
 
     // Use randomized data 

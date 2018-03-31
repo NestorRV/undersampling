@@ -21,7 +21,7 @@ class OneSideSelection(override private[undersampling] val data: Data,
     * @param distance distance to use when calling the NNRule algorithm
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
     // Use normalized data for EUCLIDEAN distance and randomized data

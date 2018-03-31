@@ -23,11 +23,11 @@ class EasyEnsemble(override private[undersampling] val data: Data,
     *                    will be the same minority class examples as majority class examples. If it's set to 2, there
     *                    will be the twice as many majority class examples as minority class examples
     * @param replacement whether or not to sample randomly with replacement or not. false by default
-    * @param n_times     times to perform the random undersampling
+    * @param nTimes      times to perform the random undersampling
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, ratio: Double = 1.0, replacement: Boolean = false, n_times: Int): Data = {
-    // Use randomized data 
+  def sample(file: Option[String] = None, ratio: Double = 1.0, replacement: Boolean = false, nTimes: Int = 5): Data = {
+    // Use randomized data
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
     val classesToWorkWith: Array[Any] = (this.index map this.y).toArray
@@ -41,7 +41,7 @@ class EasyEnsemble(override private[undersampling] val data: Data,
     val random: Random = new Random(this.seed)
 
     val majIndex: List[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }.toList
-    val majElements: Array[Int] = (0 until n_times).flatMap { _: Int =>
+    val majElements: Array[Int] = (0 until nTimes).flatMap { _: Int =>
       val majorityIndex: Array[Int] = random.shuffle(majIndex).toArray
       if (!replacement) majorityIndex.take((minorityIndex.length * ratio).toInt) else majorityIndex.indices.map((_: Int) =>
         random.nextInt(majorityIndex.length)).toArray map majorityIndex

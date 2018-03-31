@@ -23,7 +23,7 @@ class NeighbourhoodCleaningRule(override private[undersampling] val data: Data,
     * @param k        number of neighbours to use when computing k-NN rule (normally 3 neighbours)
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
     // Use normalized data for EUCLIDEAN distance and randomized data

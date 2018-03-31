@@ -20,16 +20,16 @@ class NearMiss(override private[undersampling] val data: Data,
 
   /** Compute NearMiss undersampling (NM rule)
     *
-    * @param file         file to store the log. If its set to None, log process would not be done
-    * @param distance     distance to use when calling the NNRule algorithm
-    * @param version      version of the algorithm to execute
-    * @param n_neighbours number of neighbours to take for each minority example (only used if version is set to 3)
-    * @param ratio        ratio to know how many majority class examples to preserve. By default it's set to 1 so there
-    *                     will be the same minority class examples as majority class examples. If it's set to 2, there
-    *                     will be the twice as many majority class examples as minority class examples
+    * @param file        file to store the log. If its set to None, log process would not be done
+    * @param distance    distance to use when calling the NNRule algorithm
+    * @param version     version of the algorithm to execute
+    * @param nNeighbours number of neighbours to take for each minority example (only used if version is set to 3)
+    * @param ratio       ratio to know how many majority class examples to preserve. By default it's set to 1 so there
+    *                    will be the same minority class examples as majority class examples. If it's set to 2, there
+    *                    will be the twice as many majority class examples as minority class examples
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, version: Int, n_neighbours: Int, ratio: Double = 1.0): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, version: Int = 1, nNeighbours: Int = 3, ratio: Double = 1.0): Data = {
     // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
@@ -63,7 +63,7 @@ class NearMiss(override private[undersampling] val data: Data,
       // we don't shuffle, we only take majority elements examples that are near to the first minority class examples
       new Random(this.seed).shuffle(minElements.flatMap { instance: Int =>
         nnRule(distances = distances(instance), selectedElements = majElements,
-          labels = classesToWorkWith, k = n_neighbours)._2
+          labels = classesToWorkWith, k = nNeighbours)._2
       }.distinct.toList).toArray
     } else {
       throw new Exception("Invalid argument: version should be: 1, 2 or 3")

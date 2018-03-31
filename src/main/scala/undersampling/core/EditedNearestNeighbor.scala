@@ -24,7 +24,7 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
     * @param k        number of neighbours to use when computing k-NN rule (normally 3 neighbours)
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, k: Int = 3): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3): Data = {
     // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else

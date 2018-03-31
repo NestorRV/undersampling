@@ -20,7 +20,7 @@ class TomekLink(override private[undersampling] val data: Data,
     * @param distance distance to use when calling the NNRule algorithm
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN): Data = {
     // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
