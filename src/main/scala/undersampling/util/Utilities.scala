@@ -120,6 +120,29 @@ object Utilities {
     (counter.values.sum.toFloat - counter(minorityClass)) / counter(minorityClass)
   }
 
+  /** Split the data into nFolds folds and predict the labels using the test
+    *
+    * @param labels    labels associated to each point in data
+    * @param distances distances among the elements
+    * @param k         number of neighbours to consider
+    * @param nFolds    number of subsets to create
+    * @return the predictedLabels with less error
+    */
+  def kFoldPrediction(labels: Array[Any], distances: Array[Array[Double]], k: Int, nFolds: Int): Array[Any] = {
+    val indices: List[List[Int]] = labels.indices.toList.grouped((labels.length.toFloat / nFolds).ceil.toInt).toList
+
+    val predictedLabels: Array[(Int, Array[Any])] = indices.par.map { index: List[Int] =>
+      val predictedLabels: Array[(Int, Any)] = labels.indices.diff(index).map { instance: Int =>
+        (instance, nnRule(distances = distances(instance), selectedElements = index.toArray, labels = labels, k = k)._1)
+      }.toArray
+
+      val error: Int = predictedLabels.count((e: (Int, Any)) => e._2 != labels(e._1))
+      (error, predictedLabels.sortBy((_: (Int, Any))._1).unzip._2)
+    }.toArray
+
+    predictedLabels.minBy((_: (Int, Array[Any]))._1)._2
+  }
+
   /** Compute KMeans algorithm
     *
     * @param data          data to be clustered
