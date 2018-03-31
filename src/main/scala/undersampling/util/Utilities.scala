@@ -28,6 +28,15 @@ object Utilities {
     val HVDM: Distances.Value = Value
   }
 
+  /** Return an array of the indices that are true
+    *
+    * @param data boolean array to convert
+    * @return indices
+    */
+  def boolToIndex(data: Array[Boolean]): Array[Int] = {
+    data.zipWithIndex.collect { case (v, i) if v => i }
+  }
+
   /** Compute the distances all elements against all elements
     *
     * @param data     elements to compute the distance
