@@ -20,6 +20,11 @@ object MainFile {
       println(dataset)
       val d: Data = reader.readDelimitedText(file = "./input/delimited_text/" + dataset, comment = "#", delimiter = ",", missing = "", columnClass = -1, header = false)
 
+      val bc = new BalanceCascade(d, seed = 0L)
+      println("BalanceCascade")
+      val resultBC: Array[Data] = bc.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // resultBC.zipWithIndex.foreach((d: (Data, Int)) => writer.writeDelimitedText(file = "./input/results/" + dataset + "_BC_subset%s.data".format(d._2), data = d._1))
+
       val cpm = new ClassPurityMaximization(d, seed = 0L)
       println("ClassPurityMaximization")
       val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
@@ -79,6 +84,11 @@ object MainFile {
     for (dataset <- arffData) {
       println(dataset)
       val d: Data = reader.readArff(file = "./input/arff/" + dataset)
+
+      val bc = new BalanceCascade(d, seed = 0L)
+      println("BalanceCascade")
+      val resultBC: Array[Data] = bc.sample(file = Option("./input/logs/" + dataset), distance = Distances.EUCLIDEAN)
+      // resultBC.zipWithIndex.foreach((d: (Data, Int)) => writer.writeArff(file = "./input/results/" + dataset + "_BC_subset%s.arff".format(d._2), data = d._1))
 
       val cpm = new ClassPurityMaximization(d, seed = 0L)
       println("ClassPurityMaximization")
