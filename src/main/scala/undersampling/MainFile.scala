@@ -3,7 +3,6 @@ package undersampling
 import undersampling.core._
 import undersampling.data.Data
 import undersampling.io.{Reader, Writer}
-import undersampling.util.Utilities.Distances
 
 /** An object to test the different algorithms
   *
@@ -49,6 +48,11 @@ object MainFile {
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset))
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
+
+      val ihts = new InstanceHardnessThreshold(d, seed = 0L)
+      println("InstanceHardnessThreshold")
+      val resultIHTS: Data = ihts.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_IHTS.data", data = resultIHTS)
 
       val nm = new NearMiss(d, seed = 0L)
       println("NearMiss")
@@ -114,6 +118,11 @@ object MainFile {
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset))
       // writer.writeArff(file = "./input/results/" + dataset + "_ENN.arff", data = resultENN)
+
+      val ihts = new InstanceHardnessThreshold(d, seed = 0L)
+      println("InstanceHardnessThreshold")
+      val resultIHTS: Data = ihts.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeArff(file = "./input/results/" + dataset + "_IHTS.arff", data = resultIHTS)
 
       val nm = new NearMiss(d, seed = 0L)
       println("NearMiss")
