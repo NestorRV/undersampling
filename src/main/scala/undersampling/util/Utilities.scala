@@ -260,6 +260,17 @@ object Utilities {
     (mode(index map labels), index)
   }
 
+  /** Compute the number of occurrences for each value x for attribute represented by array attribute and output class c, for each class c in classes
+    *
+    * @param attribute attribute to be used
+    * @param classes   classes present in the dataset
+    * @return map of maps with the form: (value -> (class -> number of elements))
+    */
+  def occurrencesByValueAndClass(attribute: Array[Double], classes: Array[Any]): Map[Double, Map[Any, Int]] = {
+    val auxMap: Map[Double, Array[Any]] = (attribute zip classes).groupBy((element: (Double, Any)) => element._1).map((element: (Double, Array[(Double, Any)])) => (element._1, element._2.map((value: (Double, Any)) => value._2)))
+    auxMap.map((element: (Double, Array[Any])) => Map(element._1 -> element._2.groupBy(identity).mapValues((_: Array[Any]).length))).toList.flatten.toMap
+  }
+
   /** Convert a data object into a matrix of doubles, taking care of missing values and nominal columns.
     * Missing data was treated using the most frequent value for nominal variables and the median for numeric variables.
     * Nominal columns are converted to doubles.
@@ -320,17 +331,6 @@ object Utilities {
     }
 
     processedData.transpose
-  }
-
-  /** Compute the number of occurrences for each value x for attribute represented by array attribute and output class c, for each class c in classes
-    *
-    * @param attribute attribute to be used
-    * @param classes   classes present in the dataset
-    * @return map of maps with the form: (value -> (class -> number of elements))
-    */
-  def occurrencesByValueAndClass(attribute: Array[Double], classes: Array[Any]): Map[Double, Map[Any, Int]] = {
-    val auxMap: Map[Double, Array[Any]] = (attribute zip classes).groupBy((element: (Double, Any)) => element._1).map((element: (Double, Array[(Double, Any)])) => (element._1, element._2.map((value: (Double, Any)) => value._2)))
-    auxMap.map((element: (Double, Array[Any])) => Map(element._1 -> element._2.groupBy(identity).mapValues((_: Array[Any]).length))).toList.flatten.toMap
   }
 
   /** Compute the standard deviation for an array
