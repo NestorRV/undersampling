@@ -368,4 +368,13 @@ object Utilities {
     }
     result.transpose
   }
+
+  /** Return an array of the indices that are one
+    *
+    * @param data zero/one array to convert
+    * @return indices
+    */
+  def zeroOneToIndex(data: Array[Int]): Array[Int] = {
+    data.zipWithIndex.collect { case (v, i) if v == 1 => i }
+  }
 }
