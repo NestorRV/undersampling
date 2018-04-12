@@ -28,7 +28,6 @@ class ClusterOSS(override private[undersampling] val data: Data,
     */
   def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3, numClusters: Int = 50,
              restarts: Int = 3, minDispersion: Double = 0.0001, maxIterations: Int = 200): Data = {
-
     // Use randomized data 
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
