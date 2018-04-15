@@ -10,7 +10,7 @@ import undersampling.io.{Reader, Writer}
   */
 object MainFile {
   def main(args: Array[String]): Unit = {
-    val delimitedTextData = List("abalone.data", "car.data", "spambase.data", "wdbc.csv")
+    val delimitedTextData = List("spambase.data", "wdbc.csv")
     val arffData = List("madelon.arff")
     val reader = new Reader
     val writer: Writer = new Writer
