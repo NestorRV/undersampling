@@ -49,6 +49,11 @@ object MainFile {
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset))
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_ENN.data", data = resultENN)
 
+      val eus = new EvolutionaryUnderSampling(d, seed = 0L)
+      println("EvolutionaryUnderSampling")
+      val resultEUS: Data = eus.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_EUS.data", data = resultEUS)
+
       val ihts = new InstanceHardnessThreshold(d, seed = 0L)
       println("InstanceHardnessThreshold")
       val resultIHTS: Data = ihts.sample(file = Option("./input/logs/" + dataset))
@@ -118,6 +123,11 @@ object MainFile {
       println("EditedNearestNeighbor")
       val resultENN: Data = enn.sample(file = Option("./input/logs/" + dataset))
       // writer.writeArff(file = "./input/results/" + dataset + "_ENN.arff", data = resultENN)
+
+      val eus = new EvolutionaryUnderSampling(d, seed = 0L)
+      println("EvolutionaryUnderSampling")
+      val resultEUS: Data = eus.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeArff(file = "./input/results/" + dataset + "_EUS.data", data = resultEUS)
 
       val ihts = new InstanceHardnessThreshold(d, seed = 0L)
       println("InstanceHardnessThreshold")
