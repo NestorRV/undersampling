@@ -18,9 +18,12 @@ class TomekLink(override private[undersampling] val data: Data,
     *
     * @param file     file to store the log. If its set to None, log process would not be done
     * @param distance distance to use when calling the NNRule algorithm
+    * @param ratio    indicates the instances of the Tomek Links that are going to be remove. "all" will remove all instances,
+    *                 "minority" will remove instances of the minority class and "not minority" will remove all the instances
+    *                 except the ones of the minority class.
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
     // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
@@ -49,8 +52,11 @@ class TomekLink(override private[undersampling] val data: Data,
 
     // Instances that form a Tomek link are going to be removed
     val targetInstances: Array[Int] = tomekLinks.flatMap((x: (Int, Int)) => List(x._1, x._2)).distinct
-    // We remove the all the instances except the associated with the untouchableClass
-    val removedInstances: Array[Int] = targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b }
+    // but the user can choose which of them should be removed
+    val removedInstances: Array[Int] = if (ratio == "all") targetInstances else if (ratio == "minority")
+      targetInstances.zipWithIndex.collect { case (a, b) if a == this.untouchableClass => b } else if (ratio == "not minority")
+      targetInstances.zipWithIndex.collect { case (a, b) if a != this.untouchableClass => b } else
+      throw new Exception("Incorrect value of ratio. Possible options: all, minority, not minority")
 
     // Get the final index
     val finalIndex: Array[Int] = dataToWorkWith.indices.diff(removedInstances).toArray
@@ -79,6 +85,9 @@ class TomekLink(override private[undersampling] val data: Data,
       this.logger.addMsg("DISTANCES CALCULATION TIME: %s".format(nanoTimeToString(distancesTime)))
       // Save the time
       this.logger.addMsg("TOTAL ELAPSED TIME: %s".format(nanoTimeToString(finishTime - initTime)))
+
+      // Save the info about the remove method used
+      this.logger.addMsg("REMOVED INSTANCES: %s".format(ratio))
 
       // Save the log
       this.logger.storeFile(file.get + "_TL")
