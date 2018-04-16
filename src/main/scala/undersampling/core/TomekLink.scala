@@ -23,7 +23,7 @@ class TomekLink(override private[undersampling] val data: Data,
     *                 except the ones of the minority class.
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance, ratio: String = "not minority"): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, ratio: String = "not minority"): Data = {
     // Use normalized data for EUCLIDEAN distance and randomized data
     val dataToWorkWith: Array[Array[Double]] = if (distance == Distances.EUCLIDEAN)
       (this.index map zeroOneNormalization(this.data)).toArray else
