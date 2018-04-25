@@ -13,3 +13,5 @@ scalacOptions in(Compile, doc) ++= Opts.doc.title("undersampling")
 scalacOptions += "-deprecation"
 scalacOptions += "-unchecked"
 scalacOptions += "-feature"
+
+libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-stable" % "3.8.2"
