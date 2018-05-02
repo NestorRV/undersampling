@@ -77,8 +77,10 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       val nPositives: Int = (index map classesToWorkWith).count((_: Any) == this.untouchableClass)
       val nNegatives: Int = (index map classesToWorkWith).length - nPositives
 
+      val tpr: Double = tp / (tp + fn)
+      val fpr: Double = fp / (fp + fn)
+
       val fitness: Double = if (algorithm.contains("GM")) {
-        val tpr: Double = tp / (tp + fn)
         val tnr: Double = tn / (tn + fp)
         val g: Double = sqrt(tpr * tnr)
 
@@ -96,13 +98,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       } else if (algorithm.contains("AUC")) {
         val nPredPositives: Int = predicted.count((_: Any) == this.untouchableClass)
         val nPredNegatives: Int = predicted.length - nPredPositives
-        val auc: Double = if (nPredPositives < nPredNegatives) {
-          ((tp.toDouble / nPredPositives) * (tn.toDouble / nPredNegatives)) + ((1.0 - (tn.toDouble / nPredNegatives)) *
-            (tp.toDouble / nPredPositives)) / 2.0 + ((1.0 - (tp.toDouble / nPredPositives)) * (tn.toDouble / nPredNegatives)) / 2.0
-        } else {
-          ((tp.toDouble / nPredPositives) * (tn.toDouble / nPredNegatives)) + ((1.0 - (tp.toDouble / nPredPositives)) *
-            (tn.toDouble / nPredNegatives)) / 2.0 + ((1.0 - (tn.toDouble / nPredNegatives)) * (tp.toDouble / nPredPositives)) / 2.0
-        }
+        val auc: Double = (1.0 + tpr - fpr) / 2.0
 
         if (algorithm == "EBUSGSAUC") {
           auc - abs(1 - (nPositives.toFloat / nNegatives)) * 0.2
