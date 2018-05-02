@@ -1,8 +1,10 @@
 package undersampling.util
 
+import java.util
 import java.util.concurrent.TimeUnit
 
-import undersampling.data.Data
+import undersampling.data.{Data, FileInfo}
+import weka.core.{Attribute, DenseInstance, Instances}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{immutable, mutable}
@@ -35,6 +37,40 @@ object Utilities {
     */
   def boolToIndex(data: Array[Boolean]): Array[Int] = {
     data.zipWithIndex.collect { case (v, i) if v => i }
+  }
+
+  /** Build a weka Instances object for custom data
+    *
+    * @param data     set of "instances"
+    * @param classes  response of instances
+    * @param fileInfo additional information
+    * @return
+    */
+  def buildInstances(data: Array[Array[Double]], classes: Array[Any], fileInfo: FileInfo): Instances = {
+    var counter: Int = -1
+    val dict: Map[Any, Int] = classes.distinct.map { value: Any => counter += 1; value -> counter }.toMap
+
+    val attributes: util.ArrayList[Attribute] = new util.ArrayList[Attribute]
+    val classesValues: util.ArrayList[String] = new util.ArrayList[String]
+    classes.distinct.foreach((e: Any) => classesValues.add(e.toString))
+    attributes.add(new Attribute("RESPONSE", classesValues))
+
+    if (fileInfo._header == null) {
+      data(0).indices.foreach((i: Int) => attributes.add(new Attribute("attribute_" + i)))
+    } else {
+      fileInfo._header.foreach((i: String) => attributes.add(new Attribute(i)))
+    }
+
+    val instances = new Instances("Instances", attributes, 0)
+    instances.setClassIndex(0)
+
+    (data zip classes).foreach { i: (Array[Double], Any) =>
+      val instance: Array[Double] = Array(-1.0) ++ i._1
+      instance(0) = dict(i._2)
+      instances.add(new DenseInstance(1.0, instance))
+    }
+
+    instances
   }
 
   /** Compute the distances all elements against all elements

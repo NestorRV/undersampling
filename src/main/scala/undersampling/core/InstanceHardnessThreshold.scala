@@ -1,11 +1,9 @@
 package undersampling.core
 
-import java.util
-
-import undersampling.data.{Data, FileInfo}
+import undersampling.data.Data
 import undersampling.util.Utilities._
 import weka.classifiers.trees.J48
-import weka.core.{Attribute, DenseInstance, Instances}
+import weka.core.Instances
 
 import scala.util.Random
 
@@ -21,7 +19,6 @@ class InstanceHardnessThreshold(override private[undersampling] val data: Data,
                                 override private[undersampling] val seed: Long = System.currentTimeMillis(),
                                 override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
-
   /** Compute InstanceHardnessThreshold undersampling
     *
     * @param file   file to store the log. If its set to None, log process would not be done
@@ -29,33 +26,6 @@ class InstanceHardnessThreshold(override private[undersampling] val data: Data,
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, nFolds: Int = 5): Data = {
-    def buildInstances(data: Array[Array[Double]], classes: Array[Any], fileInfo: FileInfo): Instances = {
-      var counter: Int = -1
-      val dict: Map[Any, Int] = classes.distinct.map { value: Any => counter += 1; value -> counter }.toMap
-
-      val attributes: util.ArrayList[Attribute] = new util.ArrayList[Attribute]
-      val classesValues: util.ArrayList[String] = new util.ArrayList[String]
-      classes.distinct.foreach((e: Any) => classesValues.add(e.toString))
-      attributes.add(new Attribute("RESPONSE", classesValues))
-
-      if (fileInfo._header == null) {
-        data(0).indices.foreach((i: Int) => attributes.add(new Attribute("attribute_" + i)))
-      } else {
-        fileInfo._header.foreach((i: String) => attributes.add(new Attribute(i)))
-      }
-
-      val instances = new Instances("Instances", attributes, 0)
-      instances.setClassIndex(0)
-
-      (data zip classes).foreach { i: (Array[Double], Any) =>
-        val instance: Array[Double] = Array(-1.0) ++ i._1
-        instance(0) = dict(i._2)
-        instances.add(new DenseInstance(1.0, instance))
-      }
-
-      instances
-    }
-
     // Use randomized data
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
