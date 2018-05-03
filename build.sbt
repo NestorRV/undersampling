@@ -8,7 +8,7 @@ organizationName := "Nestor Rodriguez Vico"
 
 organizationHomepage := Some(url("https://github.com/NestorRV/undersampling"))
 
-scalaVersion := "2.12.5"
+scalaVersion := "2.12.6"
 scalacOptions in(Compile, doc) ++= Opts.doc.title("undersampling")
 scalacOptions += "-deprecation"
 scalacOptions += "-unchecked"
