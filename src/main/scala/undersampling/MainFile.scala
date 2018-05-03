@@ -102,7 +102,7 @@ object MainFile {
       val cpm = new ClassPurityMaximization(d, seed = 0L)
       println("ClassPurityMaximization")
       val resultCPM: Data = cpm.sample(file = Option("./input/logs/" + dataset))
-      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_CPM.arff", data = resultCPM)
+      // writer.writeArff(file = "./input/results/" + dataset + "_CPM.arff", data = resultCPM)
 
       val cOSS = new ClusterOSS(d, seed = 0L)
       println("ClusterOSS")
