@@ -58,21 +58,12 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       val predicted: Array[Any] = dataToWorkWith.indices.map((e: Int) => nnRule(distances = distances(e),
         selectedElements = index.diff(Array(e)), labels = classesToWorkWith, k = 1)._1).toArray
 
-      var tp = 0
-      var fp = 0
-      var fn = 0
-      var tn = 0
+      val confusionMatrix: (Int, Int, Int, Int) = confusionMatrix(predicted, index map classesToWorkWith, this.untouchableClass)
 
-      (predicted zip (index map classesToWorkWith)).foreach { (cs: (Any, Any)) =>
-        if (cs._1 == this.untouchableClass && cs._2 == this.untouchableClass)
-          tp += 1
-        else if (cs._1 == this.untouchableClass && cs._2 != this.untouchableClass)
-          fp += 1
-        else if (cs._1 != this.untouchableClass && cs._2 == this.untouchableClass)
-          fn += 1
-        else if (cs._1 != this.untouchableClass && cs._2 != this.untouchableClass)
-          tn += 1
-      }
+      val tp: Int = confusionMatrix._1
+      val fp: Int = confusionMatrix._2
+      val fn: Int = confusionMatrix._3
+      val tn: Int = confusionMatrix._4
 
       val nPositives: Int = (index map classesToWorkWith).count((_: Any) == this.untouchableClass)
       val nNegatives: Int = (index map classesToWorkWith).length - nPositives
@@ -97,7 +88,6 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
         }
       } else if (algorithm.contains("AUC")) {
         val nPredPositives: Int = predicted.count((_: Any) == this.untouchableClass)
-        val nPredNegatives: Int = predicted.length - nPredPositives
         val auc: Double = (1.0 + tpr - fpr) / 2.0
 
         if (algorithm == "EBUSGSAUC") {

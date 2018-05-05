@@ -109,6 +109,33 @@ object Utilities {
     distances
   }
 
+  /** Compute the number of true positives (tp), false positives (fp), true negatives (tn) and false negatives (fn)
+    *
+    * @param predictedLabels labels predicted by a classifier
+    * @param originalLabels  original labels
+    * @param minorityClass   positive class
+    * @return (tp, fp, tn, fn)
+    */
+  def confusionMatrix(predictedLabels: Array[Any], originalLabels: Array[Any], minorityClass: Any): (Int, Int, Int, Int) = {
+    var tp: Int = 0
+    var fp: Int = 0
+    var fn: Int = 0
+    var tn: Int = 0
+
+    (predictedLabels zip originalLabels).foreach { (cs: (Any, Any)) =>
+      if (cs._1 == minorityClass && cs._2 == minorityClass)
+        tp += 1
+      else if (cs._1 == minorityClass && cs._2 != minorityClass)
+        fp += 1
+      else if (cs._1 != minorityClass && cs._2 == minorityClass)
+        fn += 1
+      else if (cs._1 != minorityClass && cs._2 != minorityClass)
+        tn += 1
+    }
+
+    (tp, fp, tn, fn)
+  }
+
   /** Compute the Euclidean Distance between two points
     *
     * @param xs first element
