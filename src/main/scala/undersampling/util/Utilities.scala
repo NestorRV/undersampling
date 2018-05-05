@@ -111,12 +111,12 @@ object Utilities {
 
   /** Compute the number of true positives (tp), false positives (fp), true negatives (tn) and false negatives (fn)
     *
-    * @param predictedLabels labels predicted by a classifier
     * @param originalLabels  original labels
+    * @param predictedLabels labels predicted by a classifier
     * @param minorityClass   positive class
     * @return (tp, fp, tn, fn)
     */
-  def confusionMatrix(predictedLabels: Array[Any], originalLabels: Array[Any], minorityClass: Any): (Int, Int, Int, Int) = {
+  def confusionMatrix(originalLabels: Array[Any], predictedLabels: Array[Any], minorityClass: Any): (Int, Int, Int, Int) = {
     var tp: Int = 0
     var fp: Int = 0
     var fn: Int = 0
