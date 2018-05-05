@@ -44,7 +44,7 @@ object Utilities {
     * @param data     set of "instances"
     * @param classes  response of instances
     * @param fileInfo additional information
-    * @return
+    * @return weka instances
     */
   def buildInstances(data: Array[Array[Double]], classes: Array[Any], fileInfo: FileInfo): Instances = {
     var counter: Int = -1
