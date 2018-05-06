@@ -8,7 +8,7 @@ import undersampling.io.{Reader, Writer}
   *
   * @author Néstor Rodríguez Vico
   */
-object MainFile {
+object TestingMainFile {
   def main(args: Array[String]): Unit = {
     val delimitedTextData = List("spambase.data", "wdbc.csv")
     val arffData = List("madelon.arff")
