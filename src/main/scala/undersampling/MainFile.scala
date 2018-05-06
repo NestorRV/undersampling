@@ -59,6 +59,11 @@ object MainFile {
       val resultIHTS: Data = ihts.sample(file = Option("./input/logs/" + dataset))
       // writer.writeDelimitedText(file = "./input/results/" + dataset + "_IHTS.data", data = resultIHTS)
 
+      val ipade = new IterativeInstanceAdjustmentImbalancedDomains(d, seed = 0L)
+      println("IterativeInstanceAdjustmentImbalancedDomains")
+      val resultIPADE: Data = ipade.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_IPADE.data", data = resultIPADE)
+
       val nm = new NearMiss(d, seed = 0L)
       println("NearMiss")
       val resultNM: Data = nm.sample(file = Option("./input/logs/" + dataset))
@@ -133,6 +138,11 @@ object MainFile {
       println("InstanceHardnessThreshold")
       val resultIHTS: Data = ihts.sample(file = Option("./input/logs/" + dataset))
       // writer.writeArff(file = "./input/results/" + dataset + "_IHTS.arff", data = resultIHTS)
+
+      val ipade = new IterativeInstanceAdjustmentImbalancedDomains(d, seed = 0L)
+      println("IterativeInstanceAdjustmentImbalancedDomains")
+      val resultIPADE: Data = ipade.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeArff(file = "./input/results/" + dataset + "_IPADE.arff", data = resultIPADE)
 
       val nm = new NearMiss(d, seed = 0L)
       println("NearMiss")
