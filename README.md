@@ -19,6 +19,8 @@ Included algorithms:
 
 * **Instance Hardness Threshold.** Original paper: "An Empirical Study of Instance Hardness" by Michael R. Smith, Tony Martinez and Christophe Giraud-Carrier.
 
+* **Iterative Instance Adjustment for Imbalanced Domains.** Original paper: "Addressing imbalanced classification with instance generation techniques: IPADE-ID" by Victoria López, Isaac Triguero, Cristóbal J. Carmona, Salvador García and Francisco Herrera.
+
 * **NearMiss.** Original paper: "kNN Approach to Unbalanced Data Distribution: A Case Study involving Information Extraction" by Jianping Zhang and Inderjeet Mani.
 
 * **Neighbourhood Cleaning Rule.** Original paper: "Improving Identification of Difficult Small Classes by Balancing Class Distribution" by J. Laurikkala.
