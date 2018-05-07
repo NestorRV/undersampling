@@ -9,8 +9,8 @@ import scala.annotation.switch
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-/** Iterative Instance Adjustment for Imbalanced Domains. "Addressing imbalanced classification with instance generation
-  * techniques: IPADE-ID" by Victoria López, Isaac Triguero, Cristóbal J. Carmona, Salvador García and Francisco Herrera.
+/** Iterative Instance Adjustment for Imbalanced Domains. Original paper: "Addressing imbalanced classification with instance
+  * generation techniques: IPADE-ID" by Victoria López, Isaac Triguero, Cristóbal J. Carmona, Salvador García and Francisco Herrera.
   *
   * @param data          localTrainData to work with
   * @param seed          seed to use. If it is not provided, it will use the system time
