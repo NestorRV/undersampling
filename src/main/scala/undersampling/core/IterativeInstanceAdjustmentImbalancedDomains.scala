@@ -300,7 +300,19 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
       val clusters: Array[ArrayBuffer[Int]] = Array.fill(leafIDs.length)(new ArrayBuffer[Int](0))
       calculatedLabels.indices.foreach((i: Int) => clusters(leafIDs.indexOf(calculatedLabels(i))) += i)
       val selectedElements: Array[Int] = clusters.map((c: ArrayBuffer[Int]) => getCentroid(c.toArray))
-      (selectedElements map data, selectedElements map classes)
+      val selectedData: Array[Array[Double]] = selectedElements map data
+      val selectedClasses: Array[Any] = selectedElements map classes
+      val (finalData, finalClasses) = classes.distinct.map { targetClass: Any =>
+        if (selectedClasses.indexOf(targetClass) == -1) {
+          val targetInstances: Array[Int] = this.random.shuffle(classes.zipWithIndex.collect { case (c, i) if c == targetClass => i }.toList).toArray
+          val finalData: Array[Array[Double]] = selectedData ++ Array(data(targetInstances(0))) ++ Array(data(targetInstances(1)))
+          val finalClasses: Array[Any] = selectedClasses ++ Array(classes(targetInstances(0))) ++ Array(classes(targetInstances(1)))
+          (finalData, finalClasses)
+        } else {
+          (selectedData, selectedClasses)
+        }
+      }.unzip
+      (finalData.flatten, finalClasses.flatten)
     } else if (algorithm.equals("NN")) {
       classes.distinct.map { targetClass: Any =>
         val targetInstances: Array[Int] = classes.zipWithIndex.collect { case (c, i) if c == targetClass => i }
