@@ -94,7 +94,6 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     */
   def differentialEvolution(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
                             testClasses: Array[Any], iterations: Int, strategy: Int): (Array[Array[Double]], Array[Any]) = {
-    // TODO: Find correct iterations value
     var localTrainData: Array[Array[Double]] = trainData.clone
     var localTrainClasses: Array[Any] = trainClasses.clone
     val randJ: Double = this.random.nextDouble()
@@ -108,7 +107,6 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
         if (randJ < tau(0)) {
           SFGSS(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData, testClasses = testClasses, strategy = strategy)
         } else if (tau(0) <= randJ && randJ < tau(1)) {
-          // TODO: Find correct scalingFactor value
           SFHC(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData, testClasses = testClasses, scalingFactor = 0.5, strategy = strategy)
         } else {
           (localTrainData.clone, localTrainClasses.clone)
