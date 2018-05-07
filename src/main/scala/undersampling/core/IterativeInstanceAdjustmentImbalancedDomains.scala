@@ -383,7 +383,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     * @param randomChoice  whether to choose a random individual or not
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, initAlgorithm: String = "C4.5", iterations: Int = 100, strategy: Int = 3, randomChoice: Boolean = true): Data = {
+  def sample(file: Option[String] = None, initAlgorithm: String = "C4.5", iterations: Int = 100, strategy: Int = 1, randomChoice: Boolean = true): Data = {
     // Use normalized localTrainData for EUCLIDEAN distance and randomized localTrainData
     val dataToWorkWith: Array[Array[Double]] = (this.index map zeroOneNormalization(this.data)).toArray
 
