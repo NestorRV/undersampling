@@ -17,7 +17,8 @@ import scala.collection.mutable.ArrayBuffer
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class IterativeInstanceAdjustmentImbalancedDomains(override private[undersampling] val data: Data, override private[undersampling] val seed: Long = System.currentTimeMillis(),
+class IterativeInstanceAdjustmentImbalancedDomains(override private[undersampling] val data: Data,
+                                                   override private[undersampling] val seed: Long = System.currentTimeMillis(),
                                                    override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
 
   private[undersampling] val random: scala.util.Random = new scala.util.Random(this.seed)
@@ -42,7 +43,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     j48.setOptions(Array("-U"))
     j48.buildClassifier(trainInstances)
 
-    val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map { i: Int => reverseTestDict(j48.classifyInstance(testInstances.get(i))) }.toArray
+    val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map { i: Int =>
+      reverseTestDict(j48.classifyInstance(testInstances.get(i))) }.toArray
     val wellClassified: Int = (testClasses zip calculatedLabels).count((e: (Any, Any)) => e._1 == e._2)
     100.0 * (wellClassified.toFloat / testData.length)
   }
@@ -55,7 +57,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     * @param testClasses  labels associated to test localTrainData
     * @return auc
     */
-  def computeFitness(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]], testClasses: Array[Any]): Double = {
+  def computeFitness(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
+                     testClasses: Array[Any]): Double = {
     var counter: Double = -1.0
     val testDict: Map[Any, Double] = testClasses.distinct.map { value: Any => counter += 1.0; value -> counter }.toMap
     val reverseTestDict: Map[Double, Any] = for ((k, v) <- testDict) yield (v, k)
@@ -67,8 +70,10 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     j48.setOptions(Array("-U"))
     j48.buildClassifier(trainInstances)
 
-    val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map { i: Int => reverseTestDict(j48.classifyInstance(testInstances.get(i))) }.toArray
-    val matrix: (Int, Int, Int, Int) = confusionMatrix(originalLabels = testClasses, predictedLabels = calculatedLabels, minorityClass = this.untouchableClass)
+    val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map { i: Int =>
+      reverseTestDict(j48.classifyInstance(testInstances.get(i))) }.toArray
+    val matrix: (Int, Int, Int, Int) = confusionMatrix(originalLabels = testClasses,
+      predictedLabels = calculatedLabels, minorityClass = this.untouchableClass)
 
     val tp: Int = matrix._1
     val fp: Int = matrix._2
@@ -100,14 +105,17 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     // TODO: Find correct tau values
     val tau: Array[Double] = Array(this.random.nextDouble(), this.random.nextDouble())
 
-    var fitness: Double = computeFitness(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData, testClasses = testClasses)
+    var fitness: Double = computeFitness(trainData = localTrainData, trainClasses = localTrainClasses,
+      testData = testData, testClasses = testClasses)
 
     (0 until iterations).foreach { iteration: Int =>
       val (newPopulation, newClasses): (Array[Array[Double]], Array[Any]) = if (iteration % 10 == 0) {
         if (randJ < tau(0)) {
-          SFGSS(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData, testClasses = testClasses, strategy = strategy)
+          SFGSS(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData,
+            testClasses = testClasses, strategy = strategy)
         } else if (tau(0) <= randJ && randJ < tau(1)) {
-          SFHC(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData, testClasses = testClasses, scalingFactor = 0.5, strategy = strategy)
+          SFHC(trainData = localTrainData, trainClasses = localTrainClasses, testData = testData,
+            testClasses = testClasses, scalingFactor = 0.5, strategy = strategy)
         } else {
           (localTrainData.clone, localTrainClasses.clone)
         }
@@ -125,7 +133,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
             sameClassIndex.indices.foreach { j: Int =>
               val disturbance: Array[Double] = individuals(j).clone
 
-              disturbance.indices.foreach((k: Int) => disturbance(k) = localTrainData(instance)(k) + (-0.01 * j) + ((0.01 * j) - (-0.01 * j)) * this.random.nextDouble)
+              disturbance.indices.foreach((k: Int) => disturbance(k) = localTrainData(instance)(k) +
+                (-0.01 * j) + ((0.01 * j) - (-0.01 * j)) * this.random.nextDouble)
               auxPopulation += disturbance
               auxLabels += labels(j)
             }
@@ -150,7 +159,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
         }.toArray.unzip
       }
 
-      val trialFitness: Double = computeFitness(trainData = newPopulation, trainClasses = newClasses, testData = testData, testClasses = testClasses)
+      val trialFitness: Double = computeFitness(trainData = newPopulation, trainClasses = newClasses,
+        testData = testData, testClasses = testClasses)
       if (trialFitness > fitness) {
         fitness = trialFitness
         localTrainData = newPopulation
@@ -168,7 +178,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     * @return index of the nearest neighbour (using Leave One Out)
     */
   def getNearestNeighbourWithTheSameClass(element: Array[Double], data: Array[Array[Double]]): Int = {
-    val distances: Array[(Double, Int)] = data.map((e: Array[Double]) => euclideanDistance(element, e)).zipWithIndex.sortBy((_: (Double, Int))._1)
+    val distances: Array[(Double, Int)] = data.map((e: Array[Double]) =>
+      euclideanDistance(element, e)).zipWithIndex.sortBy((_: (Double, Int))._1)
     // The first distance is 0, as is computed like the distance between element and element
     distances(1)._2
   }
@@ -183,7 +194,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
     * @param strategy     strategy used in the mutation process of Differential Evolution
     * @return auc of the new population
     */
-  def lsff(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]], testClasses: Array[Any], fi: Double, strategy: Int): Double = {
+  def lsff(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
+           testClasses: Array[Any], fi: Double, strategy: Int): Double = {
     val (newPopulation, newClasses): (Array[Array[Double]], Array[Any]) = mutant(trainData = trainData, trainClasses = trainClasses,
       testData = testData, testClasses = testClasses, fi = fi, strategy = strategy)
     computeFitness(trainData = newPopulation, trainClasses = newClasses, testData = testData, testClasses = testClasses)
@@ -213,7 +225,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
         sameClassIndex.indices.foreach { j: Int =>
           val disturbance: Array[Double] = individuals(j).clone
 
-          disturbance.indices.foreach((k: Int) => disturbance(k) = trainData(instance)(k) + (-0.01 * j) + ((0.01 * j) - (-0.01 * j)) * this.random.nextDouble)
+          disturbance.indices.foreach((k: Int) => disturbance(k) = trainData(instance)(k) +
+            (-0.01 * j) + ((0.01 * j) - (-0.01 * j)) * this.random.nextDouble)
           auxPopulation += disturbance
           auxLabels += labels(j)
         }
@@ -292,7 +305,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
       classes.distinct.map { targetClass: Any =>
         val targetInstances: Array[Int] = classes.zipWithIndex.collect { case (c, i) if c == targetClass => i }
         val centroid: Array[Double] = (targetInstances map data).transpose.map((_: Array[Double]).sum).map((_: Double) / targetInstances.length)
-        val calculatedLabel: Any = ((targetInstances map data).map((instance: Array[Double]) => euclideanDistance(instance, centroid)) zip (targetInstances map classes)).minBy((_: (Double, Any))._1)._2
+        val calculatedLabel: Any = ((targetInstances map data).map((instance: Array[Double]) =>
+          euclideanDistance(instance, centroid)) zip (targetInstances map classes)).minBy((_: (Double, Any))._1)._2
         (centroid, calculatedLabel)
       }.unzip
     } else {
