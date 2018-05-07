@@ -32,7 +32,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
     * @param prob0to1       probability of changing a gen from 0 to 1 (used in reinitialization)
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, populationSize: Int = 50, maxEvaluations: Int = 10000,
+  def sample(file: Option[String] = None, populationSize: Int = 50, maxEvaluations: Int = 3000,
              algorithm: String = "EBUSGSGM", distance: Distances.Distance = Distances.EUCLIDEAN, probHUX: Double = 0.25,
              recombination: Double = 0.35, prob0to1: Double = 0.05): Data = {
     // Use randomized data
