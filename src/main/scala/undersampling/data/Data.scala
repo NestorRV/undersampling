@@ -10,11 +10,11 @@ import undersampling.util.Utilities.processData
   * @param _fileInfo        object with the information needed to save the data into a file
   * @author Néstor Rodríguez Vico
   */
-class Data private[undersampling](private[undersampling] val _nominal: Array[Int], private[undersampling] val _originalData: Array[Array[Any]],
-                                  private[undersampling] val _originalClasses: Array[Any], private[undersampling] val _fileInfo: FileInfo) {
+class Data private[undersampling](private[undersampling] val _nominal: Array[Int], private[undersampling] var _originalData: Array[Array[Any]],
+                                  private[undersampling] var _originalClasses: Array[Any], private[undersampling] val _fileInfo: FileInfo) {
 
   //data without NA values and with nominal values transformed to numeric values
-  private[undersampling] val _processedData: Array[Array[Double]] = processData(this)
+  private[undersampling] var _processedData: Array[Array[Double]] = processData(this)
   //data obtained after applying an algorithm
   private[undersampling] var _resultData: Array[Array[Any]] = _
   // classes obtained after applying an algorithm
@@ -22,6 +22,29 @@ class Data private[undersampling](private[undersampling] val _nominal: Array[Int
   // index representing the kept elements
   private[undersampling] var _index: Array[Int] = _
 
+  /** originalData setter
+    *
+    * @param data new data
+    */
+  def setOriginalData(data: Array[Array[Any]]): Unit = {
+    this._originalData = data
+  }
+
+  /** originalClasses setter
+    *
+    * @param classes new data
+    */
+  def setOriginalData(classes: Array[Any]): Unit = {
+    this._originalClasses = classes
+  }
+
+  /** originalData setter
+    *
+    * @param data new data
+    */
+  def setProcessedData(data: Array[Array[Double]]): Unit = {
+    this._processedData = data
+  }
 
   /** originalData getter
     *
