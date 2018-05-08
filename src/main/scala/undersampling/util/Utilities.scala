@@ -189,7 +189,11 @@ object Utilities {
     * @return the imbalanced ratio
     */
   def imbalancedRatio(counter: Map[Any, Int], minorityClass: Any): Double = {
-    (counter.values.sum.toFloat - counter(minorityClass)) / counter(minorityClass)
+    try {
+      (counter.values.sum.toFloat - counter(minorityClass)) / counter(minorityClass)
+    } catch {
+      case _: Exception => Double.NaN
+    }
   }
 
   /** Split the data into nFolds folds and predict the labels using the test
