@@ -3,7 +3,6 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-import scala.collection.immutable
 import scala.collection.parallel.mutable.ParArray
 
 /** Edited Nearest Neighbour rule. Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
@@ -41,27 +40,30 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
     val distancesTime: Long = System.nanoTime() - initDistancesTime
 
-    val booleanIndex: Array[Boolean] = dataToWorkWith.indices.map { i: Int =>
-      val label: Any = nnRule(distances = distances(i), selectedElements = dataToWorkWith.indices.diff(List(i)).toArray, labels = classesToWorkWith, k = k)._1
-      label == classesToWorkWith(i)
-    }.toArray
+    val indices: Array[Int] = classesToWorkWith.indices.toArray
 
-    val finalIndex: Array[Int] = boolToIndex(booleanIndex)
+    // indices.diff(List(index)) is to exclude the actual element -> LeaveOneOut
+    val calculatedLabels: ParArray[(Int, (Any, Array[Int]))] = indices.par.map { index: Int =>
+      (index, nnRule(distances = distances(index),
+        selectedElements = indices.diff(List(index)), labels = classesToWorkWith, k = k))
+    }
+    // if the label matches (it is well classified) the element is useful
+    val selectedElements: ParArray[Int] = calculatedLabels.par.collect { case (i, (label, _)) if label == classesToWorkWith(i) => i }
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
 
-    this.data._resultData = (finalIndex.toArray map this.index).sorted map this.data._originalData
-    this.data._resultClasses = (finalIndex.toArray map this.index).sorted map this.data._originalClasses
-    this.data._index = (finalIndex.toArray map this.index).sorted
+    this.data._resultData = (selectedElements.toArray map this.index).sorted map this.data._originalData
+    this.data._resultClasses = (selectedElements.toArray map this.index).sorted map this.data._originalClasses
+    this.data._index = (selectedElements.toArray map this.index).sorted
 
     if (file.isDefined) {
       // Recount of classes
-      val newCounter: Map[Any, Int] = (finalIndex.toArray map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
+      val newCounter: Map[Any, Int] = (selectedElements.toArray map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
 
       this.logger.addMsg("ORIGINAL SIZE: %d".format(dataToWorkWith.length))
-      this.logger.addMsg("NEW DATA SIZE: %d".format(finalIndex.length))
-      this.logger.addMsg("REDUCTION PERCENTAGE: %s".format(100 - (finalIndex.length.toFloat / dataToWorkWith.length) * 100))
+      this.logger.addMsg("NEW DATA SIZE: %d".format(selectedElements.length))
+      this.logger.addMsg("REDUCTION PERCENTAGE: %s".format(100 - (selectedElements.length.toFloat / dataToWorkWith.length) * 100))
 
       this.logger.addMsg("ORIGINAL IMBALANCED RATIO: %s".format(imbalancedRatio(this.counter, this.untouchableClass)))
       // Recompute the Imbalanced Ratio
