@@ -3,8 +3,6 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-import scala.collection.parallel.mutable.ParArray
-
 /** Neighbourhood Cleaning Rule. Original paper: "Improving Identification of Difficult Small Classes by Balancing Class Distribution" by J. Laurikkala.
   *
   * @param data          data to work with
@@ -18,12 +16,14 @@ class NeighbourhoodCleaningRule(override private[undersampling] val data: Data,
 
   /** Compute the Neighbourhood Cleaning Rule (NCL)
     *
-    * @param file     file to store the log. If its set to None, log process would not be done
-    * @param distance distance to use when calling the NNRule algorithm
-    * @param k        number of neighbours to use when computing k-NN rule (normally 3 neighbours)
+    * @param file      file to store the log. If its set to None, log process would not be done
+    * @param distance  distance to use when calling the NNRule algorithm
+    * @param k         number of neighbours to use when computing k-NN rule (normally 3 neighbours)
+    * @param threshold consider a class to be undersampled if the number of instances of this class is
+    *                  greater than data.size * threshold
     * @return Data structure with all the important information and index of elements kept
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3, threshold: Double = 0.5): Data = {
     // Note: the notation used to refers the subsets of data is the used in the original paper.
 
     // Use normalized data for EUCLIDEAN distance and randomized data
@@ -41,44 +41,27 @@ class NeighbourhoodCleaningRule(override private[undersampling] val data: Data,
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
     val distancesTime: Long = System.nanoTime() - initDistancesTime
 
-    // index of the element of the interest class
-    val indexC: Array[Int] = classesToWorkWith.indices.toArray.filter((label: Int) => classesToWorkWith(label) == this.untouchableClass)
-    // index of the rest
-    val indexO: Array[Int] = classesToWorkWith.indices.toArray.diff(indexC.toList)
-
-    // look for noisy elements in O. Construct a Data object to be passed to Edited Nearest Neighbour
-    val auxData: Data = new Data(_nominal = this.data._nominal, _originalData = toXData(indexO map dataToWorkWith),
-      _originalClasses = indexO map classesToWorkWith, _fileInfo = this.data._fileInfo)
-    // But the untouchableClass must be the same
-    val enn = new EditedNearestNeighbor(auxData, minorityClass = this.untouchableClass)
+    val enn = new EditedNearestNeighbor(this.data)
     val resultENN: Data = enn.sample(file = None, distance = distance, k = k)
-    // noisy elements are the ones that are removed
-    val indexA1: Array[Int] = classesToWorkWith.indices.toList.diff(resultENN._index.toList map indexO).toArray
+    val indexA1: Array[Int] = classesToWorkWith.indices.diff(resultENN._index.toList).toArray
 
-    // get the size of all the classes
-    val sizeOfClasses: Map[Any, Int] = classesToWorkWith.groupBy(identity).mapValues((_: Array[Any]).length)
-    val sizeC: Int = indexC.length
+    val minorityClassIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (c, i) if c == this.untouchableClass => i }
 
-    // search for elements in O that misclassify elements in C: try to classify all the elements in C using O
-    val calculatedLabels: ParArray[(Int, (Any, Array[Int]))] = indexO.par.map { index: Int =>
-      (index, nnRule(distances = distances(index),
-        selectedElements = indexO.diff(List(index)), labels = classesToWorkWith, k = k))
-    }
+    val (predictedLabels, neighbours): (Array[Any], Array[Array[Int]]) = minorityClassIndex.map { i: Int =>
+      nnRule(distances = distances(i), selectedElements = minorityClassIndex.indices.diff(List(i)).toArray, labels = classesToWorkWith, k = k)
+    }.unzip
 
-    val selectedElements: ParArray[(Int, (Any, Array[Int]))] = calculatedLabels.par.filter((label: (Int, (Any, Array[Int]))) => label._2._1 != classesToWorkWith(label._1))
+    val neighbourhoodBooleanIndex: Array[Boolean] = (predictedLabels zip (minorityClassIndex map classesToWorkWith)).map((c: (Any, Any)) => c._1 != c._2)
 
-    val indexA2: Array[Int] = selectedElements.flatMap { label: (Int, (Any, Array[Int])) =>
-      // get the neighbours' classes
-      val neighboursClasses: Array[Any] = label._2._2.map((n: Int) => classesToWorkWith(n))
-      // and check if the size of theses classes is greater or equal than 0.5 * sizeC
-      val shouldBeAdded: Array[Boolean] = neighboursClasses.collect { case c if sizeOfClasses(c) >= (0.5 * sizeC) => true }
+    val selectedNeighbours: Array[Int] = (boolToIndex(neighbourhoodBooleanIndex) map neighbours).flatten.distinct
 
-      // add the neighbours that pass the test to indexA2
-      (label._2._2 zip shouldBeAdded).par.collect { case (neighbour, add) if add => neighbour }
+    val classesToUnderSample: Array[Any] = this.counter.collect { case (c, num_values) if c != this.untouchableClass &&
+      num_values > dataToWorkWith.length * threshold => c
     }.toArray
 
-    // final index is allData - (indexA1 union indexA2)
-    val finalIndex: Array[Int] = classesToWorkWith.indices.diff(indexA1).diff(indexA2).toArray
+    val indexA2: Array[AnyVal] = selectedNeighbours.map((i: Int) => if (classesToUnderSample.indexOf(classesToWorkWith(i)) != -1) i)
+
+    val finalIndex: Array[Int] = classesToWorkWith.indices.diff((indexA1 ++ indexA2).toList).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
