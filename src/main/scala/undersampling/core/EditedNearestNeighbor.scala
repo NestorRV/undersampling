@@ -3,8 +3,6 @@ package undersampling.core
 import undersampling.data.Data
 import undersampling.util.Utilities._
 
-import scala.collection.parallel.mutable.ParArray
-
 /** Edited Nearest Neighbour rule. Original paper: "Asymptotic Properties of Nearest Neighbor Rules Using Edited Data" by Dennis L. Wilson.
   *
   * @param data          data to work with
@@ -40,12 +38,16 @@ class EditedNearestNeighbor(override private[undersampling] val data: Data,
     val distances: Array[Array[Double]] = computeDistances(dataToWorkWith, distance, this.data._nominal, this.y)
     val distancesTime: Long = System.nanoTime() - initDistancesTime
 
-    val booleanIndex: Array[Boolean] = dataToWorkWith.indices.map { i: Int =>
-      val label: Any = nnRule(distances = distances(i), selectedElements = dataToWorkWith.indices.diff(List(i)).toArray, labels = classesToWorkWith, k = k)._1
-      label == classesToWorkWith(i)
-    }.toArray
-
-    val finalIndex: Array[Int] = boolToIndex(booleanIndex)
+    val finalIndex: Array[Int] = classesToWorkWith.distinct.flatMap { targetClass: Any =>
+      if (targetClass != this.untouchableClass) {
+        val sameClassIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (c, i) if c == targetClass => i }
+        boolToIndex(sameClassIndex.map { i: Int =>
+          nnRule(distances = distances(i), selectedElements = sameClassIndex.indices.diff(List(i)).toArray, labels = classesToWorkWith, k = k)._1
+        }.map((c: Any) => targetClass == c)) map sameClassIndex
+      } else {
+        classesToWorkWith.zipWithIndex.collect { case (c, i) if c == targetClass => i }
+      }
+    }
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
