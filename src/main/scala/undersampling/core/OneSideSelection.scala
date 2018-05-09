@@ -63,7 +63,7 @@ class OneSideSelection(override private[undersampling] val data: Data,
     val tl = new TomekLink(auxData, minorityClass = this.untouchableClass)
     val resultTL: Data = tl.sample(file = None, distance = distance)
     // The final index is the result of applying TomekLink to the content of C
-    val finalIndex: Array[Int] = classesToWorkWith.indices.toList.diff(resultTL._index.toList map finalC).toArray
+    val finalIndex: Array[Int] = classesToWorkWith.indices.diff(resultTL._index.toList map finalC).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
