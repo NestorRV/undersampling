@@ -22,14 +22,6 @@ class Data private[undersampling](private[undersampling] val _nominal: Array[Int
   // index representing the kept elements
   private[undersampling] var _index: Array[Int] = _
 
-  /** Return a deep copy of the object
-    *
-    * @return copy of the actual object
-    */
-  def copy(): Data = {
-    new Data(this._nominal.clone, this._originalData.clone, this._originalClasses.clone, this._fileInfo.copy)
-  }
-
   /** originalData setter
     *
     * @param data new data
@@ -42,7 +34,7 @@ class Data private[undersampling](private[undersampling] val _nominal: Array[Int
     *
     * @param classes new data
     */
-  def setOriginalClasses(classes: Array[Any]): Unit = {
+  def setOriginalData(classes: Array[Any]): Unit = {
     this._originalClasses = classes
   }
 
@@ -58,35 +50,29 @@ class Data private[undersampling](private[undersampling] val _nominal: Array[Int
     *
     * @return read data
     */
-  def originalData: Array[Array[Any]] = this._originalData
+  def originalData: Array[Array[Any]] = _originalData
 
   /** originalClasses getter
     *
     * @return read classes
     */
-  def originalClasses: Array[Any] = this._originalClasses
-
-  /** processedData getter
-    *
-    * @return processed data
-    */
-  def processedData: Array[Array[Double]] = this._processedData
+  def originalClasses: Array[Any] = _originalClasses
 
   /** resultData getter
     *
     * @return read data
     */
-  def resultData: Array[Array[Any]] = this._resultData
+  def resultData: Array[Array[Any]] = _resultData
 
   /** resultClasses getter
     *
     * @return read classes
     */
-  def resultClasses: Array[Any] = this._resultClasses
+  def resultClasses: Array[Any] = _resultClasses
 
   /** index of kept elements getter
     *
     * @return read classes
     */
-  def index: Array[Int] = this._index
+  def index: Array[Int] = _index
 }

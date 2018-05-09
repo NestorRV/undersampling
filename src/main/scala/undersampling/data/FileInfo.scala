@@ -21,13 +21,4 @@ class FileInfo private[undersampling](private[undersampling] val _file: String, 
                                       private[undersampling] val _attributes: mutable.Map[Int, String],
                                       private[undersampling] val _attributesValues: mutable.Map[String, String]) {
 
-  /** Return a deep copy of the object
-    *
-    * @return copy of the actual object
-    */
-  def copy(): FileInfo = {
-    new FileInfo(this._file,this._comment, this._columnClass, this._delimiter, this._missing,
-      this._header.clone, this._relationName, this._attributes.clone, this._attributesValues.clone)
-  }
-
 }
