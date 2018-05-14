@@ -15,7 +15,7 @@ private[undersampling] class Logger {
     *
     * @param msg message to store
     */
-  def addMsg(msg: String): Unit = {
+  private[undersampling] def addMsg(msg: String): Unit = {
     this.log += msg
   }
 
@@ -23,7 +23,7 @@ private[undersampling] class Logger {
     *
     * @param file filename where to store the logs
     */
-  def storeFile(file: String): Unit = {
+  private[undersampling] def storeFile(file: String): Unit = {
     val data = new PrintWriter(new File(file + ".log"))
     this.log.foreach((line: String) => data.write(line + "\n"))
     data.close()
