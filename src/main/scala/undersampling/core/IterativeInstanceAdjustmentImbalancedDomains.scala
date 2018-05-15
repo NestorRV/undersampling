@@ -329,7 +329,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
       (localTrainData, localTrainClasses)
     }
 
-    // Use normalized localTrainData for EUCLIDEAN distance and randomized localTrainData
+    // Use normalized localTrainData and randomized localTrainData
     val dataToWorkWith: Array[Array[Double]] = (this.index map zeroOneNormalization(this.data)).toArray
 
     // and randomized localTrainClasses to match the randomized localTrainData
