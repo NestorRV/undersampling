@@ -100,31 +100,36 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
         val edges: util.Map[String, GraphEdge] = parser.getEdges
 
         (0 until instances.numInstances()).map { i: Int =>
-          val instance: Instance = instances.get(i)
-          var returned: Boolean = false
-          var currentNode: GraphNode = nodes("N0")
-          var leafID: String = ""
+          if(nodes.size() == 1){
+            "N0"
+          } else {
+            val instance: Instance = instances.get(i)
+            var returned: Boolean = false
+            var currentNode: GraphNode = nodes("N0")
+            var leafID: String = ""
 
-          while (!returned) {
-            val paths: Array[GraphEdge] = edges.values().filter((p: GraphEdge) => p.getId.startsWith(currentNode.getId)).toArray
-            val selectedAttribute: Int = currentNode.getAttribute("label").toString.replaceAll("[^0-9]", "").toInt + 1
-            val options: Iterable[Array[String]] = paths.map((p: GraphEdge) => p.getAttribute("label").toString.split(" "))
+            while (!returned) {
+              val paths: Array[GraphEdge] = edges.values().filter((p: GraphEdge) => p.getId.startsWith(currentNode.getId)).toArray
+              val selectedAttribute: Int = currentNode.getAttribute("label").toString.replaceAll("[^0-9]", "").toInt + 1
+              val options: Iterable[Array[String]] = paths.map((p: GraphEdge) => p.getAttribute("label").toString.split(" "))
 
-            val selected: Array[Int] = boolToIndex(options.map { option: Array[String] =>
-              option(0) match {
-                case "<=" => (math.floor(instance.value(selectedAttribute) * 1000000) / 1000000) <= option(1).toDouble
-                case ">" => (math.floor(instance.value(selectedAttribute) * 1000000) / 1000000) > option(1).toDouble
+              val selected: Array[Int] = boolToIndex(options.map { option: Array[String] =>
+                option(0) match {
+                  case "<=" => (math.floor(instance.value(selectedAttribute) * 1000000) / 1000000) <= option(1).toDouble
+                  case ">" => (math.floor(instance.value(selectedAttribute) * 1000000) / 1000000) > option(1).toDouble
+                }
+              }.toArray)
+
+              currentNode = nodes(paths(selected(0)).getNode2.getId)
+              if (currentNode.getAttributes.size() > 2) {
+                returned = true
+                leafID = currentNode.getId
               }
-            }.toArray)
-
-            currentNode = nodes(paths(selected(0)).getNode2.getId)
-            if (currentNode.getAttributes.size() > 2) {
-              returned = true
-              leafID = currentNode.getId
             }
+
+            leafID
           }
 
-          leafID
         }.toArray
       }
 
