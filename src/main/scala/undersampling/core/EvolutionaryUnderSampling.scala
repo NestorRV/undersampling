@@ -49,9 +49,8 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
     val distancesTime: Long = System.nanoTime() - initDistancesTime
 
     val majoritySelection: Boolean = algorithm.contains("MS")
-    val targetInstances: Array[Int] = if (majoritySelection) classesToWorkWith.zipWithIndex.collect { case (c, i)
-      if c != this.untouchableClass => i
-    } else classesToWorkWith.indices.toArray
+    val targetInstances: Array[Int] = classesToWorkWith.indices.toArray
+    val minorityElements: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (c, i) if c == this.untouchableClass => i }
 
     def fitnessFunction(instance: Array[Int]): Double = {
       val index: Array[Int] = zeroOneToIndex(instance) map targetInstances
@@ -102,10 +101,16 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
 
     val random: Random = new Random(this.seed)
     val population: Array[Array[Int]] = new Array[Array[Int]](populationSize)
-    (0 until populationSize).foreach((i: Int) => population(i) = targetInstances.indices.map((_: Int) => random.nextInt(2)).toArray)
+    (0 until populationSize).foreach{ (i: Int) =>
+      val individual: Array[Int] = targetInstances.indices.map((_: Int) => random.nextInt(2)).toArray
+      if(majoritySelection){
+        minorityElements.foreach((i: Int) => individual(i) = 1)
+      }
+      population(i) = individual
+    }
 
     val evaluations: Array[Double] = new Array[Double](population.length)
-    population.zipWithIndex.par.foreach { (chromosome: (Array[Int], Int)) =>
+    population.zipWithIndex.foreach { (chromosome: (Array[Int], Int)) =>
       evaluations(chromosome._2) = fitnessFunction(chromosome._1)
     }
 
@@ -127,6 +132,11 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
             if (desc1(i) != desc2(i) && random.nextFloat < 0.5) {
               desc1(i) = if (desc1(i) == 1) 0 else if (random.nextFloat < probHUX) 1 else desc1(i)
               desc2(i) = if (desc2(i) == 1) 0 else if (random.nextFloat < probHUX) 1 else desc2(i)
+
+              if(majoritySelection){
+                minorityElements.foreach((i: Int) => desc1(i) = 1)
+                minorityElements.foreach((i: Int) => desc2(i) = 1)
+              }
             }
           }
 
@@ -136,7 +146,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       }
 
       val newEvaluations: Array[Double] = new Array[Double](newPopulation.length)
-      newPopulation.zipWithIndex.par.foreach { (chromosome: (Array[Int], Int)) =>
+      newPopulation.zipWithIndex.foreach { (chromosome: (Array[Int], Int)) =>
         newEvaluations(chromosome._2) = fitnessFunction(chromosome._1)
         actualEvaluations += 1
       }
@@ -158,14 +168,17 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
 
       if (incestThreshold <= 0) {
         population.indices.tail.foreach { i: Int =>
-          population(i) = population(i).map((_: Int) => if (random.nextFloat < recombination)
+          val individual = population(i).map((_: Int) => if (random.nextFloat < recombination)
             if (random.nextFloat < prob0to1) 1 else 0 else population(0)(i))
+
+          if(majoritySelection){
+            minorityElements.foreach((i: Int) => individual(i) = 1)
+          }
+
+          population(i) = individual
         }
 
-        population.zipWithIndex.tail.par.foreach { (e: (Array[Int], Int)) =>
-          if (e._1.forall(p => p == 0)) {
-            println("")
-          }
+        population.zipWithIndex.tail.foreach { (e: (Array[Int], Int)) =>
           evaluations(e._2) = fitnessFunction(e._1)
           actualEvaluations += 1
         }
