@@ -110,7 +110,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
     }
 
     val evaluations: Array[Double] = new Array[Double](population.length)
-    population.zipWithIndex.foreach { (chromosome: (Array[Int], Int)) =>
+    population.zipWithIndex.par.foreach { (chromosome: (Array[Int], Int)) =>
       evaluations(chromosome._2) = fitnessFunction(chromosome._1)
     }
 
@@ -146,7 +146,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       }
 
       val newEvaluations: Array[Double] = new Array[Double](newPopulation.length)
-      newPopulation.zipWithIndex.foreach { (chromosome: (Array[Int], Int)) =>
+      newPopulation.zipWithIndex.par.foreach { (chromosome: (Array[Int], Int)) =>
         newEvaluations(chromosome._2) = fitnessFunction(chromosome._1)
         actualEvaluations += 1
       }
