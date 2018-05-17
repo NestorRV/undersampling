@@ -72,7 +72,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       val fpr: Double = fp / ((fp + tn) + 0.00000001)
 
       val fitness: Double = if (algorithm.contains("GM")) {
-        val tnr: Double = tn / (tn + fp)
+        val tnr: Double = tn / ((tn + fp) + 0.00000001)
         val g: Double = sqrt(tpr * tnr)
 
         if (algorithm == "EBUSGSGM") {
