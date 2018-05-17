@@ -33,7 +33,7 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, populationSize: Int = 50, maxEvaluations: Int = 3000,
-             algorithm: String = "EBUSGSGM", distance: Distances.Distance = Distances.EUCLIDEAN, probHUX: Double = 0.25,
+             algorithm: String = "EBUSMSGM", distance: Distances.Distance = Distances.EUCLIDEAN, probHUX: Double = 0.25,
              recombination: Double = 0.35, prob0to1: Double = 0.05): Data = {
     // Use randomized data
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
@@ -70,36 +70,26 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
 
       val tpr: Double = tp / ((tp + fn) + 0.00000001)
       val fpr: Double = fp / ((fp + tn) + 0.00000001)
+      val auc: Double = (1.0 + tpr - fpr) / 2.0
+      val tnr: Double = tn / ((tn + fp) + 0.00000001)
+      val g: Double = sqrt(tpr * tnr)
 
-      val fitness: Double = if (algorithm.contains("GM")) {
-        val tnr: Double = tn / ((tn + fp) + 0.00000001)
-        val g: Double = sqrt(tpr * tnr)
-
-        if (algorithm == "EBUSGSGM") {
-          g - abs(1 - (nPositives.toFloat / nNegatives)) * 20
-        } else if (algorithm == "EBUSMSGM") {
-          g - abs(1 - (this.counter(this.untouchableClass).toFloat / nNegatives)) * 20
-        } else if (algorithm == "EUSCMGSGM") {
-          g
-        } else if (algorithm == "EUSCMMSGM") {
-          g
-        } else {
-          Double.NaN
-        }
-      } else if (algorithm.contains("AUC")) {
-        val auc: Double = (1.0 + tpr - fpr) / 2.0
-
-        if (algorithm == "EBUSGSAUC") {
-          auc - abs(1 - (nPositives.toFloat / nNegatives)) * 0.2
-        } else if (algorithm == "EBUSMSAUC") {
-          auc - abs(1 - (this.counter(this.untouchableClass).toFloat / nNegatives)) * 0.2
-        } else if (algorithm == "EUSCMGSAUC") {
-          auc
-        } else if (algorithm == "EUSCMMSAUC") {
-          auc
-        } else {
-          Double.NaN
-        }
+      val fitness: Double = if (algorithm == "EBUSGSGM") {
+        g - abs(1 - (nPositives.toFloat / nNegatives)) * 20
+      } else if (algorithm == "EBUSMSGM") {
+        g - abs(1 - (this.counter(this.untouchableClass).toFloat / nNegatives)) * 20
+      } else if (algorithm == "EUSCMGSGM") {
+        g
+      } else if (algorithm == "EUSCMMSGM") {
+        g
+      } else if (algorithm == "EBUSGSAUC") {
+        auc - abs(1 - (nPositives.toFloat / nNegatives)) * 0.2
+      } else if (algorithm == "EBUSMSAUC") {
+        auc - abs(1 - (this.counter(this.untouchableClass).toFloat / nNegatives)) * 0.2
+      } else if (algorithm == "EUSCMGSAUC") {
+        auc
+      } else if (algorithm == "EUSCMMSAUC") {
+        auc
       } else {
         Double.NaN
       }
@@ -173,6 +163,9 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
         }
 
         population.zipWithIndex.tail.par.foreach { (e: (Array[Int], Int)) =>
+          if (e._1.forall(p => p == 0)) {
+            println("")
+          }
           evaluations(e._2) = fitnessFunction(e._1)
           actualEvaluations += 1
         }
