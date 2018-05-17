@@ -141,11 +141,23 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
       val ids: Array[String] = getLeafs(instances = instances, tree = j48.graph())
       val clusters: Map[String, Array[Int]] = ids.zipWithIndex.groupBy((_: (String, Int))._1).mapValues((_: Array[(String, Int)]).unzip._2)
 
-      val centroids: Array[Int] = clusters.map { cluster: (String, Array[Int]) =>
+      val selectedElements: Array[Int] = clusters.map { cluster: (String, Array[Int]) =>
         getCentroid(cluster = cluster._2, data = data)
       }.toArray
 
-      (centroids map data, centroids map classes)
+      val selectedData: Array[Array[Double]] = selectedElements map data
+      val selectedClasses: Array[Any] = selectedElements map classes
+
+      val (finalData, finalClasses) = classes.distinct.map { targetClass: Any =>
+        if (selectedClasses.indexOf(targetClass) == -1) {
+          val targetInstances: Array[Int] = this.random.shuffle(classes.zipWithIndex.collect { case (c, i) if c == targetClass => i }.toList).toArray
+          (Array(data(targetInstances(0))) ++ Array(data(targetInstances(1))), Array(classes(targetInstances(0))) ++ Array(classes(targetInstances(1))))
+        } else {
+          (selectedData, selectedClasses)
+        }
+      }.unzip
+
+      (finalData.flatten, finalClasses.flatten)
     }
 
     def differentialEvolution(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
