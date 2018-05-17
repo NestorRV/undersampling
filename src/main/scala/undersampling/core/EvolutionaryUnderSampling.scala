@@ -68,8 +68,8 @@ class EvolutionaryUnderSampling(override private[undersampling] val data: Data,
       val nPositives: Int = (index map classesToWorkWith).count((_: Any) == this.untouchableClass)
       val nNegatives: Int = (index map classesToWorkWith).length - nPositives
 
-      val tpr: Double = tp / (tp + fn)
-      val fpr: Double = fp / (fp + tn)
+      val tpr: Double = tp / ((tp + fn) + 0.00000001)
+      val fpr: Double = fp / ((fp + tn) + 0.00000001)
 
       val fitness: Double = if (algorithm.contains("GM")) {
         val tnr: Double = tn / (tn + fp)
