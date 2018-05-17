@@ -15,3 +15,4 @@ scalacOptions += "-unchecked"
 scalacOptions += "-feature"
 
 libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-stable" % "3.8.2"
+libraryDependencies += "com.paypal.digraph" % "digraph-parser" % "1.0"

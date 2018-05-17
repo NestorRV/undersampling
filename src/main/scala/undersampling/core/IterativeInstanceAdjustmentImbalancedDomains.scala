@@ -1,11 +1,16 @@
 package undersampling.core
 
+import java.io.ByteArrayInputStream
+import java.util
+
+import com.paypal.digraph.parser.{GraphEdge, GraphNode, GraphParser}
 import undersampling.data.Data
 import undersampling.util.Utilities._
 import weka.classifiers.trees.J48
-import weka.core.Instances
+import weka.core.{Instance, Instances}
 
 import scala.annotation.switch
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -25,14 +30,13 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
 
   /** Compute Iterative Instance Adjustment for Imbalanced Domains undersampling
     *
-    * @param file          file to store the log. If its set to None, log process would not be done
-    * @param initAlgorithm initialization algorithm
-    * @param iterations    number of iterations used in Differential Evolution
-    * @param strategy      strategy used in the mutation process of Differential Evolution
-    * @param randomChoice  whether to choose a random individual or not
+    * @param file         file to store the log. If its set to None, log process would not be done
+    * @param iterations   number of iterations used in Differential Evolution
+    * @param strategy     strategy used in the mutation process of Differential Evolution
+    * @param randomChoice whether to choose a random individual or not
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, initAlgorithm: String = "C4.5", iterations: Int = 100, strategy: Int = 1, randomChoice: Boolean = true): Data = {
+  def sample(file: Option[String] = None, iterations: Int = 100, strategy: Int = 1, randomChoice: Boolean = true): Data = {
     def accuracy(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]], testClasses: Array[Any]): Double = {
       var counter: Double = -1.0
       val testDict: Map[Any, Double] = testClasses.distinct.map { value: Any => counter += 1.0; value -> counter }.toMap
@@ -83,49 +87,60 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
       auc
     }
 
-    def selectInitInstances(data: Array[Array[Double]], classes: Array[Any], algorithm: String = "C4.5"): (Array[Array[Double]], Array[Any]) = {
+    def selectInitInstances(data: Array[Array[Double]], classes: Array[Any]): (Array[Array[Double]], Array[Any]) = {
       def getCentroid(cluster: Array[Int], data: Array[Array[Double]]): Int = {
         val elements: Array[Array[Double]] = cluster map data
         val centroid: Array[Double] = elements.transpose.map((_: Array[Double]).sum).map((_: Double) / cluster.length)
         (elements.map((instance: Array[Double]) => euclideanDistance(instance, centroid)) zip cluster).minBy((_: (Double, Int))._1)._2
       }
 
-      if (algorithm.equals("C4.5")) {
-        val j48 = new J48
-        j48.setOptions(Array("-U"))
-        val instances: Instances = buildInstances(data = data, classes = classes, fileInfo = this.data._fileInfo)
-        j48.buildClassifier(instances)
+      def getLeafs(instances: Instances, tree: String): Array[String] = {
+        val parser = new GraphParser(new ByteArrayInputStream(tree.getBytes()))
+        val nodes: util.Map[String, GraphNode] = parser.getNodes
+        val edges: util.Map[String, GraphEdge] = parser.getEdges
 
-        val calculatedLabels: Array[Double] = (0 until instances.numInstances()).map { i: Int => j48.classifyInstance(instances.get(i)) }.toArray
-        val leafIDs: Array[Double] = calculatedLabels.distinct.sorted
+        (0 until instances.numInstances()).map { i: Int =>
+          val instance: Instance = instances.get(i)
+          var returned: Boolean = false
+          var currentNode: GraphNode = nodes("N0")
+          var leafID: String = ""
 
-        val clusters: Array[ArrayBuffer[Int]] = Array.fill(leafIDs.length)(new ArrayBuffer[Int](0))
-        calculatedLabels.indices.foreach((i: Int) => clusters(leafIDs.indexOf(calculatedLabels(i))) += i)
-        val selectedElements: Array[Int] = clusters.map((c: ArrayBuffer[Int]) => getCentroid(c.toArray, data))
-        val selectedData: Array[Array[Double]] = selectedElements map data
-        val selectedClasses: Array[Any] = selectedElements map classes
-        val (finalData, finalClasses) = classes.distinct.map { targetClass: Any =>
-          if (selectedClasses.indexOf(targetClass) == -1) {
-            val targetInstances: Array[Int] = this.random.shuffle(classes.zipWithIndex.collect { case (c, i) if c == targetClass => i }.toList).toArray
-            val finalData: Array[Array[Double]] = selectedData ++ Array(data(targetInstances(0))) ++ Array(data(targetInstances(1)))
-            val finalClasses: Array[Any] = selectedClasses ++ Array(classes(targetInstances(0))) ++ Array(classes(targetInstances(1)))
-            (finalData, finalClasses)
-          } else {
-            (selectedData, selectedClasses)
+          while (!returned) {
+            val paths: Array[GraphEdge] = edges.values().filter((p: GraphEdge) => p.getId.startsWith(currentNode.getId)).toArray
+            val selectedAttribute: Int = currentNode.getAttribute("label").toString.replaceAll("[^0-9]", "").toInt + 1
+            val options: Iterable[Array[String]] = paths.map((p: GraphEdge) => p.getAttribute("label").toString.split(" "))
+
+            val selected: Array[Int] = boolToIndex(options.map { option: Array[String] =>
+              option(0) match {
+                case "<=" => (math.floor(instance.value(selectedAttribute) * 1000000) / 1000000) <= option(1).toDouble
+                case ">" => (math.floor(instance.value(selectedAttribute) * 1000000) / 1000000) > option(1).toDouble
+              }
+            }.toArray)
+
+            currentNode = nodes(paths(selected(0)).getNode2.getId)
+            if (currentNode.getAttributes.size() > 2) {
+              returned = true
+              leafID = currentNode.getId
+            }
           }
-        }.unzip
-        (finalData.flatten, finalClasses.flatten)
-      } else if (algorithm.equals("NN")) {
-        classes.distinct.map { targetClass: Any =>
-          val targetInstances: Array[Int] = classes.zipWithIndex.collect { case (c, i) if c == targetClass => i }
-          val centroid: Array[Double] = (targetInstances map data).transpose.map((_: Array[Double]).sum).map((_: Double) / targetInstances.length)
-          val calculatedLabel: Any = ((targetInstances map data).map((instance: Array[Double]) =>
-            euclideanDistance(instance, centroid)) zip (targetInstances map classes)).minBy((_: (Double, Any))._1)._2
-          (centroid, calculatedLabel)
-        }.unzip
-      } else {
-        throw new Exception("Invalid argument: initAlgorithm should be: C4.5 or NN.")
+
+          leafID
+        }.toArray
       }
+
+      val j48 = new J48
+      j48.setOptions(Array("-U"))
+      val instances: Instances = buildInstances(data = data, classes = classes, fileInfo = this.data._fileInfo)
+      j48.buildClassifier(instances)
+
+      val ids: Array[String] = getLeafs(instances = instances, tree = j48.graph())
+      val clusters: Map[String, Array[Int]] = ids.zipWithIndex.groupBy((_: (String, Int))._1).mapValues((_: Array[(String, Int)]).unzip._2)
+
+      val centroids: Array[Int] = clusters.map { cluster: (String, Array[Int]) =>
+        getCentroid(cluster = cluster._2, data = data)
+      }.toArray
+
+      (centroids map data, centroids map classes)
     }
 
     def differentialEvolution(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
@@ -260,7 +275,6 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
       var localTrainData: Array[Array[Double]] = trainData.clone
       var localTrainClasses: Array[Any] = trainClasses.clone
       val randJ: Double = this.random.nextDouble()
-      // TODO: Find correct tau values
       val tau: Array[Double] = Array(this.random.nextDouble(), this.random.nextDouble())
 
       var fitness: Double = computeFitness(trainData = localTrainData, trainClasses = localTrainClasses,
@@ -383,7 +397,6 @@ class IterativeInstanceAdjustmentImbalancedDomains(override private[undersamplin
           (alternativeData.clone, alternativeClasses.clone)
         } else {
           val sameClassIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (c, i) if c == targetClass => i }
-          // TODO: Find correct value of randomChoice
           val (newIndividual, newClass): (Array[Double], Any) = if (randomChoice || targetClass != this.untouchableClass) {
             val randomElement: Int = this.random.shuffle(sameClassIndex.toList).head
             (dataToWorkWith(randomElement), classesToWorkWith(randomElement))
