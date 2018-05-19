@@ -14,9 +14,9 @@ import scala.math.min
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class ClassPurityMaximization(override private[undersampling] val data: Data,
+class ClassPurityMaximization(private[undersampling] val data: Data,
                               override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                              override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+                              override private[undersampling] val minorityClass: Any = -1) extends Algorithm {
 
   private[undersampling] val centers: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
   private[undersampling] var distances: Array[Array[Double]] = _

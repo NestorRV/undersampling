@@ -10,9 +10,9 @@ import undersampling.util.Utilities._
   * @param minorityClass indicates the minority class. If it's set to -1, it will set to the one with less instances
   * @author Néstor Rodríguez Vico
   */
-class EditedNearestNeighbor(override private[undersampling] val data: Data,
+class EditedNearestNeighbor(private[undersampling] val data: Data,
                             override private[undersampling] val seed: Long = System.currentTimeMillis(),
-                            override private[undersampling] val minorityClass: Any = -1) extends Algorithm(data, seed, minorityClass) {
+                            override private[undersampling] val minorityClass: Any = -1) extends Algorithm {
 
 
   /** Compute the Edited Nearest Neighbour rule (ENN rule)
