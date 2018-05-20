@@ -168,7 +168,7 @@ class EvolutionaryUnderSampling(private[undersampling] val data: Data,
 
       if (incestThreshold <= 0) {
         population.indices.tail.foreach { i: Int =>
-          val individual = population(i).map((_: Int) => if (random.nextFloat < recombination)
+          val individual: Array[Int] = population(i).map((_: Int) => if (random.nextFloat < recombination)
             if (random.nextFloat < prob0to1) 1 else 0 else population(0)(i))
 
           if(majoritySelection){
