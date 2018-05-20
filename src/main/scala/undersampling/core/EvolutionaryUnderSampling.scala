@@ -32,7 +32,7 @@ class EvolutionaryUnderSampling(private[undersampling] val data: Data,
     * @param prob0to1       probability of changing a gen from 0 to 1 (used in reinitialization)
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, populationSize: Int = 50, maxEvaluations: Int = 3000,
+  def sample(file: Option[String] = None, populationSize: Int = 50, maxEvaluations: Int = 1000,
              algorithm: String = "EBUSMSGM", distance: Distances.Distance = Distances.EUCLIDEAN, probHUX: Double = 0.25,
              recombination: Double = 0.35, prob0to1: Double = 0.05): Data = {
     // Use randomized data
@@ -148,8 +148,9 @@ class EvolutionaryUnderSampling(private[undersampling] val data: Data,
       val newEvaluations: Array[Double] = new Array[Double](newPopulation.length)
       newPopulation.zipWithIndex.par.foreach { (chromosome: (Array[Int], Int)) =>
         newEvaluations(chromosome._2) = fitnessFunction(chromosome._1)
-        actualEvaluations += 1
       }
+
+      actualEvaluations += newPopulation.length
 
       // We order the population. The best ones (greater evaluation value) are the first
       val populationOrder: Array[(Double, Int, String)] = evaluations.zipWithIndex.sortBy((_: (Double, Int))._1)(Ordering[Double].reverse).map((e: (Double, Int)) => (e._1, e._2, "OLD"))
@@ -178,10 +179,11 @@ class EvolutionaryUnderSampling(private[undersampling] val data: Data,
           population(i) = individual
         }
 
-        population.zipWithIndex.tail.foreach { (e: (Array[Int], Int)) =>
+        population.zipWithIndex.tail.par.foreach { (e: (Array[Int], Int)) =>
           evaluations(e._2) = fitnessFunction(e._1)
-          actualEvaluations += 1
         }
+
+        actualEvaluations += (population.length - 1)
 
         incestThreshold = (recombination * (1.0 - recombination) * targetInstances.length.toFloat).toInt
       }
