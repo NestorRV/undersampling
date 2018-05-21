@@ -4,7 +4,7 @@ import java.util
 import java.util.concurrent.TimeUnit
 
 import undersampling.data.{Data, FileInfo}
-import weka.core.{Attribute, DenseInstance, Instances}
+import weka.core.{Attribute, DenseInstance, Instance, Instances}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.{immutable, mutable}
@@ -62,13 +62,16 @@ object Utilities {
     }
 
     val instances = new Instances("Instances", attributes, 0)
-    instances.setClassIndex(0)
 
     (data zip classes).foreach { i: (Array[Double], Any) =>
-      val instance: Array[Double] = Array(-1.0) ++ i._1
-      instance(0) = dict(i._2)
-      instances.add(new DenseInstance(1.0, instance))
+      val instance: Instance = new DenseInstance(i._1.length + 1)
+      instance.setValue(0, dict(i._2))
+      i._1.zipWithIndex.foreach((e: (Double, Int)) => instance.setValue(e._2 + 1, e._1))
+      instance.setDataset(instances)
+      instances.add(instance)
     }
+
+    instances.setClassIndex(0)
 
     instances
   }
