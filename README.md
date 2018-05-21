@@ -7,7 +7,7 @@ Included algorithms:
 
 * **Class Purity Maximization algorithm.** Original paper: "An Unsupervised Learning Approach to Resolving the Data Imbalanced Issue in Supervised Learning Problems in Functional Genomics" by Kihoon Yoon and Stephen Kwek.
 
-* **ClusterOSS.** Original paper: "ClusterOSS: a new undersampling method for imbalanced learning." by Victor H Barella, Eduardo P Costa and André C P L F Carvalho.
+* **ClusterOSS.** Original paper: "ClusterOSS: a new undersampling method for imbalanced learning." by Victor H Barella, Eduardo P Costa and André C. P. L. F. Carvalho.
 
 * **Condensed Nearest Neighbor decision rule.** Original paper: "The Condensed Nearest Neighbor Rule" by P. Hart.
 
