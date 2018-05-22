@@ -80,8 +80,8 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       val fn: Int = matrix._3
       val tn: Int = matrix._4
 
-      val tpr: Double = tp / (tp + fn)
-      val fpr: Double = fp / (fp + tn)
+      val tpr: Double = tp / ((tp + fn) + 0.00000001)
+      val fpr: Double = fp / ((fp + tn) + 0.00000001)
 
       val auc: Double = (1.0 + tpr - fpr) / 2.0
       auc
