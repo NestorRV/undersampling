@@ -56,7 +56,7 @@ class UndersamplingBasedClustering(private[undersampling] val data: Data,
 
     val sSizes: Array[(Int, Int)] = assignment.map { (element: (Int, Array[Int])) =>
       val ratio: (Int, Int) = minMajElements(element._1)
-      // The max is to prevent infinity values if no minority elements are added to the cluster
+      // The min is to prevent infinity values if no minority elements are added to the cluster
       (element._1, min(m * nPos * ((ratio._2.toDouble / (ratio._1 + 1)) / sizeK), ratio._2).toInt)
     }.toArray
 
