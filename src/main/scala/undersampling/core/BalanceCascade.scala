@@ -52,6 +52,9 @@ class BalanceCascade(private[undersampling] val data: Data,
     val mask: Array[Boolean] = Array.fill(classesToWorkWith.length)(true)
     val subsets: ArrayBuffer[Array[Int]] = new ArrayBuffer[Array[Int]](0)
 
+    val minorityElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
+    val majorityElements: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
+
     while (search) {
       val indexToUnderSample: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
       val minorityIndex: ArrayBuffer[Int] = new ArrayBuffer[Int](0)
@@ -64,8 +67,10 @@ class BalanceCascade(private[undersampling] val data: Data,
           val indexClassInterest: Array[Int] = boolToIndex(sameClassBool) map indexClass
           val indexTargetClass: List[Int] = random.shuffle((indexClassInterest map classesToWorkWith).indices.toList).take(this.counter(this.untouchableClass))
           indexToUnderSample ++= (indexTargetClass map indexClassInterest)
+          majorityElements ++= (indexTargetClass map indexClassInterest)
         } else {
           minorityIndex ++= indexClass
+          minorityElements ++= indexClass
         }
       }
 
@@ -74,24 +79,26 @@ class BalanceCascade(private[undersampling] val data: Data,
       subsets += subset
 
       val classesToWorkWithSubset: Array[Any] = subset map classesToWorkWith
-      val prediction: Array[Any] = kFoldPrediction(classesToWorkWithSubset, distances = distances, k = k, nFolds = nFolds).take(indexToUnderSample.length)
+      val prediction: Array[Any] = kFoldPrediction(classesToWorkWithSubset, distances = distances, k = k,
+        nFolds = nFolds).take(indexToUnderSample.length)
 
-      val classifiedInstances: Array[Boolean] = ((indexToUnderSample.indices map classesToWorkWithSubset) zip prediction).map((e: (Any, Any)) => e._1 == e._2).toArray
+      val classifiedInstances: Array[Boolean] = ((indexToUnderSample.indices map classesToWorkWithSubset)
+        zip prediction).map((e: (Any, Any)) => e._1 == e._2).toArray
       (boolToIndex(classifiedInstances) map indexToUnderSample).foreach((i: Int) => mask(i) = false)
 
       if (subsetsCounter == nMaxSubsets) search = false
 
       val finalTargetStats: Map[Any, Int] = (boolToIndex(mask) map classesToWorkWith).groupBy(identity).mapValues((_: Array[Any]).length)
-      classesToWorkWith.distinct.filter((c: Any) => c != this.untouchableClass).foreach((c: Any) => if (finalTargetStats(c) < this.counter(this.untouchableClass)) search = false)
+      classesToWorkWith.distinct.filter((c: Any) => c != this.untouchableClass).foreach { c: Any =>
+        if (finalTargetStats(c) < this.counter(this.untouchableClass)) search = false
+      }
     }
 
-    val minorityIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (c, i) if c == this.untouchableClass => i }
-    val majElements: Array[Int] = subsets.flatten.filter((e: Int) => classesToWorkWith(e) != this.minorityClass).toArray
-    val majorityIndexHistogram: Array[(Int, Int)] = majElements.groupBy(identity).mapValues((_: Array[Int]).length).toArray.sortBy((_: (Int, Int))._2).reverse
-    val majorityIndex: Array[Int] = majorityIndexHistogram.take((minorityIndex.length * ratio).toInt).map((_: (Int, Int))._1)
+    val majorityIndexHistogram: Array[(Int, Int)] = majorityElements.groupBy(identity).mapValues((_: ArrayBuffer[Int]).length).toArray.sortBy((_: (Int, Int))._2).reverse
+    val majorityIndex: Array[Int] = majorityIndexHistogram.take((minorityElements.distinct.length * ratio).toInt).map((_: (Int, Int))._1)
 
     // Get the index of the reduced data
-    val finalIndex: Array[Int] = minorityIndex ++ majorityIndex
+    val finalIndex: Array[Int] = minorityElements.distinct.toArray ++ majorityIndex
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
