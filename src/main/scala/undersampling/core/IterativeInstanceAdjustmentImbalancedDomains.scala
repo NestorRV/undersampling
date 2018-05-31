@@ -38,10 +38,6 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
     */
   def sample(file: Option[String] = None, iterations: Int = 100, strategy: Int = 1, randomChoice: Boolean = true): Data = {
     def accuracy(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]], testClasses: Array[Any]): Double = {
-      var counter: Double = -1.0
-      val testDict: Map[Any, Double] = testClasses.distinct.map { value: Any => counter += 1.0; value -> counter }.toMap
-      val reverseTestDict: Map[Double, Any] = for ((k, v) <- testDict) yield (v, k)
-
       val trainInstances: Instances = buildInstances(data = trainData, classes = trainClasses, fileInfo = this.data._fileInfo)
       val testInstances: Instances = buildInstances(data = testData, classes = testClasses, fileInfo = this.data._fileInfo)
 
@@ -49,18 +45,15 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
-      val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map { i: Int =>
-        reverseTestDict(j48.classifyInstance(testInstances.get(i)))
-      }.toArray
-      val wellClassified: Int = (testClasses zip calculatedLabels).count((e: (Any, Any)) => e._1 == e._2)
+      val realClasses: Array[Double] = (0 until testInstances.numInstances()).map((i: Int) => testInstances.get(i).classValue()).toArray
+      val calculatedLabels: Array[Double] = (0 until testInstances.numInstances()).map((i: Int) => j48.classifyInstance(testInstances.get(i))).toArray
+
+      val wellClassified: Int = (realClasses zip calculatedLabels).count((e: (Any, Any)) => e._1 == e._2)
       100.0 * (wellClassified.toFloat / testData.length)
     }
 
     def computeFitness(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
-                       testClasses: Array[Any]): Double = {
-      var counter: Double = -1.0
-      val testDict: Map[Any, Double] = testClasses.distinct.map { value: Any => counter += 1.0; value -> counter }.toMap
-      val reverseTestDict: Map[Double, Any] = for ((k, v) <- testDict) yield (v, k)
+                       testClasses: Array[Any], dict: Map[Any, Double]): Double = {
 
       val trainInstances: Instances = buildInstances(data = trainData, classes = trainClasses, fileInfo = this.data._fileInfo)
       val testInstances: Instances = buildInstances(data = testData, classes = testClasses, fileInfo = this.data._fileInfo)
@@ -69,11 +62,11 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
-      val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map { i: Int =>
-        reverseTestDict(j48.classifyInstance(testInstances.get(i)))
-      }.toArray
-      val matrix: (Int, Int, Int, Int) = confusionMatrix(originalLabels = testClasses,
-        predictedLabels = calculatedLabels, minorityClass = this.untouchableClass)
+      val realClasses: Array[Any] = (0 until testInstances.numInstances()).map((i: Int) => testInstances.get(i).classValue()).toArray
+      val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map((i: Int) => j48.classifyInstance(testInstances.get(i))).toArray
+
+      val matrix: (Int, Int, Int, Int) = confusionMatrix(originalLabels = realClasses,
+        predictedLabels = calculatedLabels, minorityClass = dict(this.untouchableClass))
 
       val tp: Int = matrix._1
       val fp: Int = matrix._2
@@ -161,7 +154,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
     }
 
     def differentialEvolution(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
-                              testClasses: Array[Any], iterations: Int, strategy: Int): (Array[Array[Double]], Array[Any]) = {
+                              testClasses: Array[Any], iterations: Int, strategy: Int, dict: Map[Any, Double]): (Array[Array[Double]], Array[Any]) = {
 
       def mutant(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]], testClasses: Array[Any],
                  fi: Double, strategy: Int = 1): (Array[Array[Double]], Array[Any]) = {
@@ -233,7 +226,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
                testClasses: Array[Any], fi: Double, strategy: Int): Double = {
         val (newPopulation, newClasses): (Array[Array[Double]], Array[Any]) = mutant(trainData = trainData, trainClasses = trainClasses,
           testData = testData, testClasses = testClasses, fi = fi, strategy = strategy)
-        computeFitness(trainData = newPopulation, trainClasses = newClasses, testData = testData, testClasses = testClasses)
+        computeFitness(trainData = newPopulation, trainClasses = newClasses, testData = testData, testClasses = testClasses, dict = dict)
       }
 
       def SFGSS(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]], testClasses: Array[Any],
@@ -295,7 +288,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       val tau: Array[Double] = Array(this.random.nextDouble(), this.random.nextDouble())
 
       var fitness: Double = computeFitness(trainData = localTrainData, trainClasses = localTrainClasses,
-        testData = testData, testClasses = testClasses)
+        testData = testData, testClasses = testClasses, dict = dict)
 
       (0 until iterations).foreach { iteration: Int =>
         val (newPopulation, newClasses): (Array[Array[Double]], Array[Any]) = if (iteration % 10 == 0) {
@@ -349,7 +342,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
         }
 
         val trialFitness: Double = computeFitness(trainData = newPopulation, trainClasses = newClasses,
-          testData = testData, testClasses = testClasses)
+          testData = testData, testClasses = testClasses, dict = dict)
         if (trialFitness > fitness) {
           fitness = trialFitness
           localTrainData = newPopulation
@@ -369,11 +362,16 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
     // Start the time
     val initTime: Long = System.nanoTime()
 
+    var counter: Double = -1.0
+    val classesTranslation: Map[Any, Double] = classesToWorkWith.distinct.map { value: Any => counter += 1.0; value -> counter }.toMap
+
     val initInstances: (Array[Array[Double]], Array[Any]) = selectInitInstances(data = dataToWorkWith, classes = classesToWorkWith)
     var (population, classes): (Array[Array[Double]], Array[Any]) = differentialEvolution(trainData = initInstances._1,
-      trainClasses = initInstances._2, testData = dataToWorkWith, testClasses = classesToWorkWith, iterations = iterations, strategy = strategy)
+      trainClasses = initInstances._2, testData = dataToWorkWith, testClasses = classesToWorkWith,
+      iterations = iterations, strategy = strategy, dict = classesTranslation)
 
-    var fitness: Double = computeFitness(trainData = population, trainClasses = classes, testData = dataToWorkWith, testClasses = classesToWorkWith)
+    var fitness: Double = computeFitness(trainData = population, trainClasses = classes, testData = dataToWorkWith,
+      testClasses = classesToWorkWith, dict = classesTranslation)
 
     val isClassMarked: mutable.Map[Any, Boolean] = mutable.Map[Any, Boolean]()
     classesToWorkWith.distinct.foreach((c: Any) => isClassMarked(c) = false)
@@ -441,10 +439,13 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
         }
 
         val (testerData, testerClasses): (Array[Array[Double]], Array[Any]) = differentialEvolution(trainData = population2Data,
-          trainClasses = population2Classes, testData = dataToWorkWith, testClasses = classesToWorkWith, iterations = iterations, strategy = strategy)
+          trainClasses = population2Classes, testData = dataToWorkWith, testClasses = classesToWorkWith,
+          iterations = iterations, strategy = strategy, dict = classesTranslation)
 
-        fitness = computeFitness(trainData = population, trainClasses = classes, testData = dataToWorkWith, testClasses = classesToWorkWith)
-        val trialFitness: Double = computeFitness(trainData = testerData, trainClasses = testerClasses, testData = dataToWorkWith, testClasses = classesToWorkWith)
+        fitness = computeFitness(trainData = population, trainClasses = classes, testData = dataToWorkWith,
+          testClasses = classesToWorkWith, dict = classesTranslation)
+        val trialFitness: Double = computeFitness(trainData = testerData, trainClasses = testerClasses,
+          testData = dataToWorkWith, testClasses = classesToWorkWith, dict = classesTranslation)
 
         if (trialFitness > fitness) {
           optimizedIteration(targetClass) += 1
