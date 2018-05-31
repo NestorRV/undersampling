@@ -21,8 +21,8 @@ object TestingMainFile {
 
       val bc = new BalanceCascade(d, seed = 0L)
       println("BalanceCascade")
-      val resultBC: Array[Data] = bc.sample(file = Option("./input/logs/" + dataset))
-      // resultBC.zipWithIndex.foreach((d: (Data, Int)) => writer.writeDelimitedText(file = "./input/results/" + dataset + "_BC_subset%s.data".format(d._2), data = d._1))
+      val resultBC: Data = bc.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeDelimitedText(file = "./input/results/" + dataset + "_BC.data", data = resultBC)
 
       val cpm = new ClassPurityMaximization(d, seed = 0L)
       println("ClassPurityMaximization")
@@ -101,8 +101,8 @@ object TestingMainFile {
 
       val bc = new BalanceCascade(d, seed = 0L)
       println("BalanceCascade")
-      val resultBC: Array[Data] = bc.sample(file = Option("./input/logs/" + dataset))
-      // resultBC.zipWithIndex.foreach((d: (Data, Int)) => writer.writeArff(file = "./input/results/" + dataset + "_BC_subset%s.arff".format(d._2), data = d._1))
+      val resultBC: Data = bc.sample(file = Option("./input/logs/" + dataset))
+      // writer.writeArff(file = "./input/results/" + dataset + "_BC.arff", data = resultBC)
 
       val cpm = new ClassPurityMaximization(d, seed = 0L)
       println("ClassPurityMaximization")
