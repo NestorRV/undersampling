@@ -26,8 +26,8 @@ class ClusterOSS(private[undersampling] val data: Data,
     * @param maxIterations number of iterations to be done in KMeans algorithm
     * @return Data structure with all the important information
     */
-  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3, numClusters: Int = 50,
-             restarts: Int = 3, minDispersion: Double = 0.0001, maxIterations: Int = 200): Data = {
+  def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, k: Int = 3, numClusters: Int = 15,
+             restarts: Int = 5, minDispersion: Double = 0.0001, maxIterations: Int = 100): Data = {
     // Use randomized data 
     val dataToWorkWith: Array[Array[Double]] = (this.index map this.x).toArray
     // and randomized classes to match the randomized data
@@ -44,8 +44,8 @@ class ClusterOSS(private[undersampling] val data: Data,
     val majElements: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label != this.untouchableClass => i }
     val minElements: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (label, i) if label == this.untouchableClass => i }
 
-    val (_, centroids, assignment) = kMeans(data = majElements map dataToWorkWith, nominal = this.data._nominal, numClusters = numClusters, restarts = restarts,
-      minDispersion = minDispersion, maxIterations = maxIterations, seed = this.seed)
+    val (_, centroids, assignment) = kMeans(data = majElements map dataToWorkWith, nominal = this.data._nominal,
+      numClusters = numClusters, restarts = restarts, minDispersion = minDispersion, maxIterations = maxIterations, seed = this.seed)
 
     val kMeansTime: Long = System.nanoTime() - initTime
 
@@ -66,12 +66,12 @@ class ClusterOSS(private[undersampling] val data: Data,
     // Flatten all the clusters
     val test: Array[Int] = result._2.flatten
 
-    val calculatedLabels: Array[(Int, (Any, Array[Int]))] = test.map { testInstance: Int =>
-      (testInstance, nnRule(distances = distances(testInstance), selectedElements = train, labels = classesToWorkWith, k = 1))
+    val calculatedLabels: Array[(Int, Any)] = test.map { testInstance: Int =>
+      (testInstance, nnRule(distances = distances(testInstance), selectedElements = train, labels = classesToWorkWith, k = 1)._1)
     }
 
     // if the label matches (it is well classified) the element is useful
-    val misclassified: Array[Int] = calculatedLabels.collect { case (i, (label, _)) if label != classesToWorkWith(i) => i }
+    val misclassified: Array[Int] = calculatedLabels.collect { case (i, label) if label != classesToWorkWith(i) => i }
 
     val newData: Array[Int] = misclassified ++ train
 
