@@ -85,7 +85,7 @@ class BalanceCascade(private[undersampling] val data: Data,
       classesToWorkWith.distinct.filter((c: Any) => c != this.untouchableClass).foreach((c: Any) => if (finalTargetStats(c) < this.counter(this.untouchableClass)) search = false)
     }
 
-    val minorityIndex: Array[Int] = subsets.flatten.filter((e: Int) => classesToWorkWith(e) == this.minorityClass).distinct.toArray
+    val minorityIndex: Array[Int] = classesToWorkWith.zipWithIndex.collect { case (c, i) if c == this.untouchableClass => i }
     val majElements: Array[Int] = subsets.flatten.filter((e: Int) => classesToWorkWith(e) != this.minorityClass).toArray
     val majorityIndexHistogram: Array[(Int, Int)] = majElements.groupBy(identity).mapValues((_: Array[Int]).length).toArray.sortBy((_: (Int, Int))._2).reverse
     val majorityIndex: Array[Int] = majorityIndexHistogram.take((minorityIndex.length * ratio).toInt).map((_: (Int, Int))._1)
