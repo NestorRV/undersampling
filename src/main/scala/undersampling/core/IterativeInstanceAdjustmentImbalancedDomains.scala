@@ -61,7 +61,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
-      val evaluations = new Evaluation(trainInstances)
+      val evaluations: Evaluation = new Evaluation(trainInstances)
       evaluations.evaluateModel(j48, testInstances)
 
       evaluations.areaUnderROC(testInstances.classIndex())
