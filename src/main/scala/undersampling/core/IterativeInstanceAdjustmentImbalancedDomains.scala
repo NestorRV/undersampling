@@ -6,6 +6,7 @@ import java.util
 import com.paypal.digraph.parser.{GraphEdge, GraphNode, GraphParser}
 import undersampling.data.Data
 import undersampling.util.Utilities._
+import weka.classifiers.Evaluation
 import weka.classifiers.trees.J48
 import weka.core.{Instance, Instances}
 
@@ -45,11 +46,9 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
-      val realClasses: Array[Double] = (0 until testInstances.numInstances()).map((i: Int) => testInstances.get(i).classValue()).toArray
-      val calculatedLabels: Array[Double] = (0 until testInstances.numInstances()).map((i: Int) => j48.classifyInstance(testInstances.get(i))).toArray
-
-      val wellClassified: Int = (realClasses zip calculatedLabels).count((e: (Any, Any)) => e._1 == e._2)
-      100.0 * (wellClassified.toFloat / testData.length)
+      val evaluations: Evaluation = new Evaluation(trainInstances)
+      evaluations.evaluateModel(j48, testInstances)
+      evaluations.correct()
     }
 
     def computeFitness(trainData: Array[Array[Double]], trainClasses: Array[Any], testData: Array[Array[Double]],
@@ -62,22 +61,10 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
-      val realClasses: Array[Any] = (0 until testInstances.numInstances()).map((i: Int) => testInstances.get(i).classValue()).toArray
-      val calculatedLabels: Array[Any] = (0 until testInstances.numInstances()).map((i: Int) => j48.classifyInstance(testInstances.get(i))).toArray
+      val evaluations = new Evaluation(trainInstances)
+      evaluations.evaluateModel(j48, testInstances)
 
-      val matrix: (Int, Int, Int, Int) = confusionMatrix(originalLabels = realClasses,
-        predictedLabels = calculatedLabels, minorityClass = dict(this.untouchableClass))
-
-      val tp: Int = matrix._1
-      val fp: Int = matrix._2
-      val fn: Int = matrix._3
-      val tn: Int = matrix._4
-
-      val tpr: Double = tp / ((tp + fn) + 0.00000001)
-      val fpr: Double = fp / ((fp + tn) + 0.00000001)
-
-      val auc: Double = (1.0 + tpr - fpr) / 2.0
-      auc
+      evaluations.areaUnderROC(testInstances.classIndex())
     }
 
     def selectInitInstances(data: Array[Array[Double]], classes: Array[Any]): (Array[Array[Double]], Array[Any]) = {
