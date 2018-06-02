@@ -123,7 +123,7 @@ class BalanceCascade(private[undersampling] val data: Data,
       this.logger.addMsg("TOTAL ELAPSED TIME: %s".format(nanoTimeToString(finishTime - initTime)))
 
       // Save the log
-      this.logger.storeFile(file.get + "_EE")
+      this.logger.storeFile(file.get + "_BC")
     }
 
     this.data
