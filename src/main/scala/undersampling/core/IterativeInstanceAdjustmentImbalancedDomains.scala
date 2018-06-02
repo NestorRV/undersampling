@@ -42,7 +42,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       val trainInstances: Instances = buildInstances(data = trainData, classes = trainClasses, fileInfo = this.data._fileInfo)
       val testInstances: Instances = buildInstances(data = testData, classes = testClasses, fileInfo = this.data._fileInfo)
 
-      val j48 = new J48
+      val j48: J48 = new J48
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
@@ -57,7 +57,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
       val trainInstances: Instances = buildInstances(data = trainData, classes = trainClasses, fileInfo = this.data._fileInfo)
       val testInstances: Instances = buildInstances(data = testData, classes = testClasses, fileInfo = this.data._fileInfo)
 
-      val j48 = new J48
+      val j48: J48 = new J48
       j48.setOptions(Array("-U"))
       j48.buildClassifier(trainInstances)
 
@@ -80,7 +80,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
         val edges: util.Map[String, GraphEdge] = parser.getEdges
 
         (0 until instances.numInstances()).map { i: Int =>
-          if(nodes.size() == 1){
+          if (nodes.size() == 1) {
             "N0"
           } else {
             val instance: Instance = instances.get(i)
@@ -113,7 +113,7 @@ class IterativeInstanceAdjustmentImbalancedDomains(private[undersampling] val da
         }.toArray
       }
 
-      val j48 = new J48
+      val j48: J48 = new J48
       j48.setOptions(Array("-U"))
       val instances: Instances = buildInstances(data = data, classes = classes, fileInfo = this.data._fileInfo)
       j48.buildClassifier(instances)

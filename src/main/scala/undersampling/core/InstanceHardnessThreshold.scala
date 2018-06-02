@@ -42,7 +42,7 @@ class InstanceHardnessThreshold(private[undersampling] val data: Data,
     indices.foreach { testIndex: Array[Int] =>
       val trainIndex: Array[Int] = classesToWorkWith.indices.diff(testIndex).toArray
 
-      val j48 = new J48
+      val j48: J48 = new J48
       j48.setOptions(Array("-U", "-M", "1"))
 
       val trainInstances: Instances = buildInstances(data = trainIndex map dataToWorkWith, classes = trainIndex map classesToWorkWith, fileInfo = this.data._fileInfo)
