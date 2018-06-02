@@ -47,12 +47,13 @@ object Utilities {
     * @return weka instances
     */
   def buildInstances(data: Array[Array[Double]], classes: Array[Any], fileInfo: FileInfo): Instances = {
+    val possibleClasses: Array[String] = fileInfo._attributesValues("Class").replaceAll("[{} ]", "").split(",")
     var counter: Int = -1
-    val dict: Map[Any, Int] = classes.distinct.map { value: Any => counter += 1; value -> counter }.toMap
+    val dict: Map[Any, Int] = possibleClasses.map { value: Any => counter += 1; value -> counter }.toMap
 
     val attributes: util.ArrayList[Attribute] = new util.ArrayList[Attribute]
     val classesValues: util.ArrayList[String] = new util.ArrayList[String]
-    classes.distinct.foreach((e: Any) => classesValues.add(e.toString))
+    possibleClasses.foreach((e: Any) => classesValues.add(e.toString))
     attributes.add(new Attribute("RESPONSE", classesValues))
 
     if (fileInfo._header.length == 0) {
