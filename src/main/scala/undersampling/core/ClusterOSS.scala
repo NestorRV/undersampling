@@ -82,7 +82,7 @@ class ClusterOSS(private[undersampling] val data: Data,
     val tl = new TomekLink(auxData, minorityClass = this.untouchableClass)
     val resultTL: Data = tl.sample(file = None, distance = distance)
     // The final index is the result of applying TomekLink to the content of newData
-    val finalIndex: Array[Int] = ((resultTL._index.toList map newData) ++ minElements).toArray
+    val finalIndex: Array[Int] = (resultTL._index.toList map newData).toArray
 
     // Stop the time
     val finishTime: Long = System.nanoTime()
