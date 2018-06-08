@@ -310,7 +310,7 @@ object Utilities {
     val minutes: Long = TimeUnit.NANOSECONDS.toMinutes(elapsedTime)
     val seconds: Long = TimeUnit.NANOSECONDS.toSeconds(elapsedTime) - TimeUnit.MINUTES.toSeconds(minutes)
     val millis: Long = TimeUnit.NANOSECONDS.toMillis(elapsedTime) - TimeUnit.MINUTES.toMillis(minutes) - TimeUnit.SECONDS.toMillis(seconds)
-    "%03d min, %03d sec %03d millis".format(minutes, seconds, millis)
+    "%03d min, %03d sec, %03d millis".format(minutes, seconds, millis)
   }
 
   /** Decide the label using the NNRule considering k neighbours of data set
