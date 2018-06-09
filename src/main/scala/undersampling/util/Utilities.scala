@@ -56,7 +56,7 @@ object Utilities {
     possibleClasses.foreach((e: Any) => classesValues.add(e.toString))
     attributes.add(new Attribute("RESPONSE", classesValues))
 
-    if (fileInfo._header.length == 0) {
+    if (fileInfo._header == null) {
       data(0).indices.foreach((i: Int) => attributes.add(new Attribute("attribute_" + i)))
     } else {
       fileInfo._header.foreach((i: String) => attributes.add(new Attribute(i)))
