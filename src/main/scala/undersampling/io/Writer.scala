@@ -20,6 +20,9 @@ class Writer {
     val pr = new PrintWriter(new File(file))
     pr.write("@relation %s\n".format(data._fileInfo._relationName))
 
+    if(data._fileInfo._attributes == null ||  data._fileInfo._attributesValues == null)
+      throw new Exception("Unnable to write arff: missing information")
+
     val orderedAttributes: Map[Int, String] = ListMap(data._fileInfo._attributes.toSeq.sortBy((_: (Int, String))._1): _*)
 
     for (attribute <- orderedAttributes) {
@@ -47,18 +50,21 @@ class Writer {
     * @param data data to save to the file
     */
   def writeDelimitedText(file: String, data: Data): Unit = {
+    val delimiter: String = if(data._fileInfo._delimiter == "") "," else data._fileInfo._delimiter
+    val missing: String = if(data._fileInfo._missing == "") "?" else data._fileInfo._delimiter
+
     val pr = new PrintWriter(new File(file))
-    if (data._fileInfo._header.length != 0)
-      pr.write(data._fileInfo._header.mkString(data._fileInfo._delimiter) + "\n")
+    if (data._fileInfo._header != null)
+      pr.write(data._fileInfo._header.mkString(delimiter) + "\n")
 
     for (row <- data._resultData zip data._resultClasses) {
       val naIndex: Array[Int] = row._1.zipWithIndex.filter((_: (Any, Int))._1 == "undersampling_NA").map((_: (Any, Int))._2)
       val newRow: Array[Any] = row._1.clone()
       for (index <- naIndex) {
-        newRow(index) = data._fileInfo._missing
+        newRow(index) = missing
       }
 
-      pr.write(newRow.mkString(data._fileInfo._delimiter) + "," + row._2 + "\n")
+      pr.write(newRow.mkString(delimiter) + "," + row._2 + "\n")
     }
 
     pr.close()
