@@ -48,7 +48,7 @@ class Writer {
     */
   def writeDelimitedText(file: String, data: Data): Unit = {
     val pr = new PrintWriter(new File(file))
-    if (data._fileInfo._header != null)
+    if (data._fileInfo._header.length != 0)
       pr.write(data._fileInfo._header.mkString(data._fileInfo._delimiter) + "\n")
 
     for (row <- data._resultData zip data._resultClasses) {
