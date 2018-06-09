@@ -50,8 +50,8 @@ class Writer {
     * @param data data to save to the file
     */
   def writeDelimitedText(file: String, data: Data): Unit = {
-    val delimiter: String = if(data._fileInfo._delimiter == "") "," else data._fileInfo._delimiter
-    val missing: String = if(data._fileInfo._missing == "") "?" else data._fileInfo._delimiter
+    val delimiter: String = if(data._fileInfo._delimiter == null) "," else data._fileInfo._delimiter
+    val missing: String = if(data._fileInfo._missing == null) "?" else data._fileInfo._delimiter
 
     val pr = new PrintWriter(new File(file))
     if (data._fileInfo._header != null)
