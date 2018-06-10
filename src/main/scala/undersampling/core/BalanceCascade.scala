@@ -25,8 +25,8 @@ class BalanceCascade(private[undersampling] val data: Data,
     * @param nMaxSubsets maximum number of subsets to generate
     * @param nFolds      number of subsets to create when applying cross-validation
     * @param ratio       ratio to know how many majority class examples to preserve. By default it's set to 1 so there
-    *                    will be the same minority class examples as majority class examples. If it's set to 2, there
-    *                    will be the twice as many majority class examples as minority class examples
+    *                    will be the same minority class examples as majority class examples. It will take 
+    *                    numMinorityInstances * ratio
     * @return array of Data structures with all the important information and index of elements kept for each subset
     */
 

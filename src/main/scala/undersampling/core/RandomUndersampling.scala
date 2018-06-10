@@ -20,8 +20,8 @@ class RandomUndersampling(private[undersampling] val data: Data,
     *
     * @param file        file to store the log. If its set to None, log process would not be done
     * @param ratio       ratio to know how many majority class examples to preserve. By default it's set to 1 so there
-    *                    will be the same minority class examples as majority class examples. If it's set to 2, there
-    *                    will be the twice as many majority class examples as minority class examples
+    *                    will be the same minority class examples as majority class examples. It will take 
+    *                    numMinorityInstances * ratio
     * @param replacement whether or not to sample randomly with replacement or not. false by default
     * @return Data structure with all the important information and index of elements kept
     */

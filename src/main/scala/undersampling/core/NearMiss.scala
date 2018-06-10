@@ -25,8 +25,8 @@ class NearMiss(private[undersampling] val data: Data,
     * @param version     version of the algorithm to execute
     * @param nNeighbours number of neighbours to take for each minority example (only used if version is set to 3)
     * @param ratio       ratio to know how many majority class examples to preserve. By default it's set to 1 so there
-    *                    will be the same minority class examples as majority class examples. If it's set to 2, there
-    *                    will be the twice as many majority class examples as minority class examples
+    *                    will be the same minority class examples as majority class examples. It will take 
+    *                    numMinorityInstances * ratio
     * @return Data structure with all the important information
     */
   def sample(file: Option[String] = None, distance: Distances.Distance = Distances.EUCLIDEAN, version: Int = 1, nNeighbours: Int = 3, ratio: Double = 1.0): Data = {
