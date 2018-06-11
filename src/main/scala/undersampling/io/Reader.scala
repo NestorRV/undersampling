@@ -140,7 +140,7 @@ class Reader {
     * @param columnClass indicates which column represents the class in the file. It it's set to -1, it will take the las column
     * @return a Data object containing all the relevant information
     */
-  def readDelimitedText(file: String, comment: String, delimiter: String, missing: String, header: Boolean, columnClass: Int = -1): Data = {
+  def readDelimitedText(file: String, comment: String = "#", delimiter: String = ",", missing: String = "?", header: Boolean = true, columnClass: Int = -1): Data = {
     val reader: BufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))
     reader.mark(1000000000)
     val firstLine: String = reader.readLine
