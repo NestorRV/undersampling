@@ -1,6 +1,8 @@
 # undersampling
 ### By Néstor Rodríguez Vico
 
+Documentation available in [https://nestorrv.github.io](https://nestorrv.github.io).
+
 Included algorithms:
 
 * **Balance Cascade.** Original paper: "Exploratory Undersampling for Class-Imbalance Learning" by Xu-Ying Liu, Jianxin Wu and Zhi-Hua Zhou.
