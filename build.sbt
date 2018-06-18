@@ -1,6 +1,6 @@
 name := "undersampling"
 
-version := "2.1.1"
+version := "1.0.0"
 
 organization := "com.github.NestorRV"
 
